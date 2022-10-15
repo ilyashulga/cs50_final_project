@@ -1,0 +1,24 @@
+sort1 uses: Bubble sort
+
+How do you know?: Because if comparing Random50000 to Sorted50000 looks like the Omega here is Omega(n) (the best case sorting time is much lower than random sorting time)
+
+sort2 uses: Merge sort
+
+How do you know?: Has best running times for all cases. Running time in worst and best case is about the same wich points to the fact that it has O(?) = Omega(?) or just Theta(?).
+
+sort3 uses: Selection sort
+
+How do you know?: The best case and random running times are nearly the same so Theta(?) but worth than Sort2 which corresponds to selection sort
+
+
+Running times:
+                            Sort 1   Sort2   Sort3
+        Random5000.txt      96m      44m     46m
+        Random10000.txt     306m     88m     160m
+        Random50000.txt     8851m    1623m   4125m
+        sorted5000.txt      30m      29m     53m
+        sorted10000.txt     94m      60m     201m
+        sorted50000.txt     2093m    2017m   4569m
+        reversed5000.txt    106m     46m     68m
+        reversed10000.txt   244m     68m     183m
+        reversed50000.txt   6995m    1421m   3928m

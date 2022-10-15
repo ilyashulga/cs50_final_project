@@ -1,0 +1,22 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Buy Stock
+{% endblock %}
+
+{% block main %}
+    <form action="/buy" method="post">
+        <div class="mb-3">
+            <input autocomplete="off" autofocus class="form-control mx-auto w-auto" id="symbol" name="symbol" placeholder="Stock ticker: aka. 'AAPL'" type="text">
+        </div><br>
+        <div class="mb-3">
+            <input autocomplete="off" autofocus class="form-control mx-auto w-auto" id="amount" name="amount" placeholder="Number of shares" type="number" min="1">
+        </div>
+        <button class="btn btn-primary" type="submit">Buy</button>
+    </form>
+    <br><br>
+    <p>Bought {{ number_of_shares }} shares of {{ stock_quote['name'] }} for the price of {{ stock_quote['price'] | usd }} </p><br>
+    <p>Total purchase price: {{ total_cost }} </p>
+    <p>Cash left: {{ new_cash | usd }} </p>
+
+{% endblock %}
