@@ -2,3 +2,5 @@ cs50
 python3-Flask
 Flask-Session
 requests
+plotly
+pandas

@@ -5,34 +5,15 @@
 {% endblock %}
 
 {% block main %}
-<h2> My Portfolio </h2>
-<table>
-    <thead>
-        <tr>
-            <th>Symbol</th>
-            <th>Name</th>
-            <th>Number of shares</th>
-            <th>AVG Cost</th>
-            <th>Total Cost</th>
-            <th>Share Price (Current)</th>
-            <th>Total value (Current)</th>
-        </tr>
-    </thead>
-    <tbody>
-            {% for ticker in holdings %}
-                <tr>
-                    <td>{{ ticker['symbol'] }}</td>
-                    <td>{{ ticker['company_name'] }}</td>
-                    <td>{{ ticker['number_of_shares'] }}</td>
-                    <td>{{ ticker['share_price'] }}</td>
-                    <td>{{ ticker['total_value'] }}</td>
-                    <td>{{ current_price[ticker['symbol']] }}</td>
-                    <td>{{ current_price[ticker['symbol']]*ticker['number_of_shares'] }}</td>
-                </tr>
-            {% endfor %}
-    </tbody>
-</table>
-<br>
-<h3 style="text-align:right;">Remaining cash balance: {{ cash }}</h3>
-<h3 style="text-align:right;">Total portfolio value: {{ total_holdings_value }}</h3>
+<h2> EMC Plotter ver.1.0 </h2>
+
+<div id = "chart1"></div>
+
+<!-- plotly CDN -->
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<script>
+    var graph1 = {{ graph1JSON | safe }}
+    Plotly.plot("chart1", graph1, {})
+</script>
+
 {% endblock %}

@@ -9,6 +9,10 @@ from tempfile import mkdtemp
 from werkzeug.security import check_password_hash, generate_password_hash
 import time
 import json
+import pandas as pd
+import plotly
+import plotly.express as px
+
 
 from helpers import apology, login_required, lookup, usd
 
@@ -43,9 +47,29 @@ def after_request(response):
 @login_required
 def index():
     """Below will be the main page"""
+    # Read csv content with pandas into dataframe starting from line 18 (otherwise pandas can't read properly the data)
+    df = pd.read_csv('All_Traces.csv', skiprows=18)
+    
+    
+    # Change columns names in dataframe to more intuitive names
+    df.columns = ['Frequency[MHz]','Max(Ver,Hor)', 'Ver', 'Hor']
+    #print(df.columns)
+    print(df.head)
+    # Iterate over each row in Dataframe, calculate Max(Column 2, Column 3) or Max(Ver,Hor) on each row and insert into Column 1 or Max(Ver,Hor) column
+    for row in range(len(df)):
+        df.at[row,'Max(Ver,Hor)'] = max(df.at[row,'Hor'], df.at[row,'Ver'])
+        df.at[row,'Frequency[MHz]'] = df.at[row,'Frequency[MHz]']/1000000
+
+    #print(df.head)
+    # plot xy chart using plotly library
+    fig = px.line(df, x='Frequency[MHz]', y='Max(Ver,Hor)', log_x=True)
+    #fig.show()
+
+    graph1JSON = json.dumps(fig, cls = plotly.utils.PlotlyJSONEncoder)
     # Return index.html and pass required parameters to jinja on front-end
     #return render_template("index.html", holdings=holdings, cash=usd(cash), total_holdings_value=usd(total_holdings_value), current_price=current_price)
-    return apology("Main Page will be here)", 200)
+    #return apology("Main Page will be here)", 200)
+    return render_template("index.html", graph1JSON=graph1JSON)
 
 
 
