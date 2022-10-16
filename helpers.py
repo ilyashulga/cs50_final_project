@@ -4,6 +4,10 @@ import urllib.parse
 
 from flask import redirect, render_template, request, session
 from functools import wraps
+import json
+import pandas as pd
+import plotly
+import plotly.express as px
 
 
 def apology(message, code=400):
@@ -35,30 +39,18 @@ def login_required(f):
     return decorated_function
 
 
-def lookup(symbol):
-    """Look up quote for symbol."""
+def generate_graph(df):
+    """Generate graph in JSON format to be sent to JINJA and embedded inside html"""
+    # Iterate over each row in Dataframe, calculate Max(Column 2, Column 3) or Max(Ver,Hor) on each row and insert into Column 1 or Max(Ver,Hor) column
+    for row in range(len(df)):
+        df.at[row,'Max(Ver,Hor)'] = max(df.at[row,'Hor'], df.at[row,'Ver'])
+        df.at[row,'Frequency[MHz]'] = df.at[row,'Frequency[MHz]']/1000000
+    
+    # create xy chart using plotly library    
+    fig = px.line(df, x='Frequency[MHz]', y='Max(Ver,Hor)', log_x=True)
 
-    # Contact API
-    try:
-        api_key = os.environ.get("API_KEY")
-        url = f"https://cloud.iexapis.com/stable/stock/{urllib.parse.quote_plus(symbol)}/quote?token={api_key}"
-        response = requests.get(url)
-        response.raise_for_status()
-    except requests.RequestException:
-        return None
+    # Convery plotly fig to JSON object
+    graphJSON = json.dumps(fig, cls = plotly.utils.PlotlyJSONEncoder)
 
-    # Parse response
-    try:
-        quote = response.json()
-        return {
-            "name": quote["companyName"],
-            "price": float(quote["latestPrice"]),
-            "symbol": quote["symbol"]
-        }
-    except (KeyError, TypeError, ValueError):
-        return None
+    return graphJSON
 
-
-def usd(value):
-    """Format value as USD."""
-    return f"${value:,.2f}"
