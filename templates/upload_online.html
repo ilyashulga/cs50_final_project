@@ -1,0 +1,27 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Upload new File
+{% endblock %}
+
+{% block main %}
+<h1>Upload new File</h1>
+
+<form method=post enctype=multipart/form-data>
+    <input type=file name=file>
+    <input type=submit value=Upload>
+</form>
+
+<div id = "chart1"></div>
+
+    
+    
+
+<!-- plotly CDN -->
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<script>
+    var graph1 = {{ graph1JSON | safe }}
+    Plotly.plot("chart1", graph1, {})
+</script>
+
+{% endblock %}
