@@ -114,7 +114,7 @@ def upload_online():
             username = db.execute("SELECT username FROM users WHERE id=?", session["user_id"])[0]["username"]
             # Get user_folder absolute address
             user_folder = os.path.join(basedir, app.config['UPLOAD_FOLDER'], username)
-            # Get session_folder absolure address
+            # Get session_folder absolure address - FIX BUG! Each time new folder created
             session_folder = os.path.join(basedir, app.config['UPLOAD_FOLDER'], username, session["session"][0]['name'] + "_" + datetime.datetime.now().strftime("%d_%m_%Y_%H_%M_%S"))
             # Create a folder user private folder if not exists already
             if not os.path.exists(user_folder): 
