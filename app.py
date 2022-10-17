@@ -53,6 +53,7 @@ def after_request(response):
 @login_required
 def index():
     """Below will be the main page"""
+    
     # Read csv content with pandas into dataframe starting from line 18 (otherwise pandas can't read properly the data)
     
     df = pd.read_csv('All_Traces.csv', skiprows=18)
@@ -80,15 +81,6 @@ def upload_online():
     except:
         return render_template("new_session.html")
 
-    # Read csv content with pandas into dataframe starting from row 18 (otherwise pandas can't read properly the data)
-    df = pd.read_csv('All_Traces.csv', skiprows=18)
-    
-    # Change column names in dataframe to more intuitive
-    df.columns = ['Frequency[MHz]','Max(Ver,Hor)', 'Ver', 'Hor']
-    
-    # Generate JSON graph from dataframe
-    graph1JSON = generate_graph(df)
-
     if request.method == 'POST':
         # check if the post request has the file part
         if 'file' not in request.files:
@@ -104,6 +96,19 @@ def upload_online():
             filename = secure_filename(file.filename)
             session_folder = db.execute("SELECT folder FROM sessions WHERE user_id=? AND is_open=1", session["user_id"])[0]["folder"]
             file.save(os.path.join(session_folder, filename))
+    
+    # Read csv content with pandas into dataframe starting from row 18 (otherwise pandas can't read properly the data)
+    try:
+        df = pd.read_csv(os.path.join(session_folder, filename), skiprows=18)
+    except:
+        return render_template("upload_online.html")
+    
+    # Change column names in dataframe to more intuitive
+    df.columns = ['Frequency[MHz]','Max(Ver,Hor)', 'Ver', 'Hor']
+    
+    # Generate JSON graph from dataframe
+    graph1JSON = generate_graph(df, request.form.get("graph_title"))
+
 
     return render_template("upload_online.html", graph1JSON=graph1JSON)
 
@@ -247,4 +252,5 @@ def create_test_session_folder():
     
     return session_folder
 
-    
+if __name__ == '__main__':
+    app.run()
