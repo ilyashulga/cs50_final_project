@@ -112,6 +112,28 @@ def upload_online():
 
     return render_template("upload_online.html", graph1JSON=graph1JSON)
 
+@app.route("/graphs_compare", methods=["GET", "POST"])
+@login_required
+def graphs_compare():
+    """GUI for comparing plots"""
+    # Display a list of uploaded user files and folder structure, select with checkboxes what graphs to compare and press compare
+    """
+    # Read csv content with pandas into dataframe starting from row 18 (otherwise pandas can't read properly the data)
+    try:
+        df = pd.read_csv(os.path.join(session_folder, filename), skiprows=18)
+    except:
+        return render_template("upload_online.html")
+    
+    # Change column names in dataframe to more intuitive
+    df.columns = ['Frequency[MHz]','Max(Ver,Hor)', 'Ver', 'Hor']
+    
+    # Generate JSON graph from dataframe
+    graph1JSON = generate_graph(df, request.form.get("graph_title"))
+
+
+    return render_template("upload_online.html", graph1JSON=graph1JSON)
+    """
+
 @app.route("/login", methods=["GET", "POST"])
 def login():
     """Log user in"""
