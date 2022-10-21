@@ -4,7 +4,8 @@
 import os
 
 from cs50 import SQL
-from flask import Flask, flash, redirect, render_template, request, session, url_for
+from flask import Flask, flash, redirect, render_template, request, session, url_for, safe_join, send_file, abort
+from pathlib import Path
 from flask_session import Session
 from tempfile import mkdtemp
 from werkzeug.security import check_password_hash, generate_password_hash
@@ -15,9 +16,10 @@ import pandas as pd
 import plotly
 import plotly.express as px
 import datetime
+import os
 
 
-from helpers import apology, login_required, generate_graph
+from helpers import apology, login_required, generate_graph, getIconClassForFilename
 
 # Configure File uploads
 UPLOAD_FOLDER = 'users_data/'
@@ -56,18 +58,18 @@ def index():
     
     # Read csv content with pandas into dataframe starting from line 18 (otherwise pandas can't read properly the data)
     
-    df = pd.read_csv('All_Traces.csv', skiprows=18)
+    #df = pd.read_csv('All_Traces.csv', skiprows=18)
     
     # Change column names in dataframe to more intuitive
-    df.columns = ['Frequency[MHz]','Max(Ver,Hor)', 'Ver', 'Hor']
+    #df.columns = ['Frequency[MHz]','Max(Ver,Hor)', 'Ver', 'Hor']
     #print(df.columns)
     #print(df.head)
     
     # Generate JSON graph from dataframe
-    graph1JSON = generate_graph(df)
+    #graph1JSON = generate_graph(df)
 
     #return apology("Main Page will be here)", 200)
-    return render_template("index.html", graph1JSON=graph1JSON)
+    return render_template("index.html", graph1JSON=1)
 
 @app.route("/upload_online", methods=["GET", "POST"])
 @login_required
@@ -96,7 +98,7 @@ def upload_online():
             filename = secure_filename(file.filename)
             session_folder = db.execute("SELECT folder FROM sessions WHERE user_id=? AND is_open=1", session["user_id"])[0]["folder"]
             file.save(os.path.join(session_folder, filename))
-    
+            flash("Result was successfully added")
     # Read csv content with pandas into dataframe starting from row 18 (otherwise pandas can't read properly the data)
     try:
         df = pd.read_csv(os.path.join(session_folder, filename), skiprows=18)
@@ -108,7 +110,7 @@ def upload_online():
     
     # Generate JSON graph from dataframe
     graph1JSON = generate_graph(df, request.form.get("graph_title"))
-
+    
 
     return render_template("upload_online.html", graph1JSON=graph1JSON)
 
@@ -117,6 +119,13 @@ def upload_online():
 def graphs_compare():
     """GUI for comparing plots"""
     # Display a list of uploaded user files and folder structure, select with checkboxes what graphs to compare and press compare
+    #if request.method == 'POST':
+    session_folders = db.execute("SELECT folder FROM sessions WHERE user_id=? AND NOT folder='' AND NOT folder='tmp'", session["user_id"])
+    for folder in session_folders:
+        print(os.listdir(folder['folder']))
+    
+    return render_template("graphs_compare.html")
+    #print(session_folders)
     """
     # Read csv content with pandas into dataframe starting from row 18 (otherwise pandas can't read properly the data)
     try:
@@ -273,6 +282,42 @@ def create_test_session_folder():
         os.makedirs(session_folder)
     
     return session_folder
+
+
+# route handler
+@app.route('/reports/', defaults={'reqPath': ''})
+@app.route('/reports/<path:reqPath>')
+def getFiles(reqPath):
+    # Get session folder path from SQL database
+    FolderPath = db.execute("SELECT folder FROM sessions WHERE user_id=? AND is_open=1", session["user_id"])[0]["folder"]
+    
+    # Join the base and the requested path
+    # could have done os.path.join, but safe_join ensures that files are not fetched from parent folders of the base folder
+    absPath = safe_join(FolderPath, reqPath)
+
+    # Return 404 if path doesn't exist
+    if not os.path.exists(absPath):
+        return abort(404)
+
+    # Check if path is a file and serve
+    if os.path.isfile(absPath):
+        return send_file(absPath)
+
+    # Show directory contents
+    def fObjFromScan(x):
+        fileStat = x.stat()
+        # return file information for rendering
+        return {'name': x.name,
+                'fIcon': "bi bi-folder-fill" if os.path.isdir(x.path) else getIconClassForFilename(x.name),
+                'relPath': os.path.relpath(x.path, FolderPath).replace("\\", "/"),
+                }
+    fileObjs = [fObjFromScan(x) for x in os.scandir(absPath)]
+    # get parent directory url
+    parentFolderPath = os.path.relpath(Path(absPath).parents[0], FolderPath).replace("\\", "/")
+    return render_template('files.html', data={'files': fileObjs,
+                                                 'parentFolder': parentFolderPath})
+
+
 
 if __name__ == '__main__':
     app.run()
