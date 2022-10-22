@@ -10,6 +10,7 @@ import plotly
 import plotly.express as px
 import plotly.graph_objects as go
 from pathlib import Path
+import pyvisa
 
 
 def apology(message, code=400):
@@ -75,7 +76,7 @@ def generate_multiple_graphs(fileObjs, session_folder):
             df.at[row,'Max(Ver,Hor)'] = max(df.at[row,'Hor'], df.at[row,'Ver'])
             df.at[row,'Frequency[MHz]'] = df.at[row,'Frequency[MHz]']/1000000
         # create xy chart using plotly library
-        fig.add_trace(go.Scatter(x=df["Frequency[MHz]"], y=df["Max(Ver,Hor)"], name=file["name"], mode="lines"))    
+        fig.add_trace(go.Scatter(x=df["Frequency[MHz]"], y=df["Max(Ver,Hor)"], name=file["name"], mode="lines", visible='legendonly'))    
         #fig.add_trace(go.line(df, x='Frequency[MHz]', y='Max(Ver,Hor)', log_x=True, template="plotly_white"))
     # Change x-axis to log scale
     fig.update_xaxes(type="log")
@@ -90,3 +91,14 @@ def getIconClassForFilename(fName):
                  "mp4", "otf", "pdf", "php", "png", "pptx", "psd", "py", "raw", "rb", "sass", "scss", "sh", "sql", "svg", "tiff", "tsx", "ttf", "txt", "wav", "woff", "xlsx", "xml", "yml"]
     fileIconClass = f"bi bi-filetype-{fileExt}" if fileExt in fileTypes else "bi bi-file-earmark"
     return fileIconClass
+
+
+def open_connection(ip):
+
+    rm = pyvisa.ResourceManager()
+    inst = rm.open_resource("TCPIP0::" + ip + "::inst0::INSTR")
+    print(inst.query("*IDN?"))
+
+def close_connection(rm, inst):
+    rm.close()
+    inst.close()

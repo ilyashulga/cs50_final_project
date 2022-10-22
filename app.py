@@ -17,9 +17,20 @@ import plotly
 import plotly.express as px
 import datetime
 import os
+import pyvisa
 
 
-from helpers import apology, login_required, generate_graph, getIconClassForFilename, generate_multiple_graphs
+from helpers import apology, login_required, generate_graph, getIconClassForFilename, generate_multiple_graphs, open_connection, close_connection
+
+# Configure Spectrum Analyzer Keysight
+# Alter this host name, or IP address, in the line below to accommodate your specific instrument
+host = 'k-n5245b-81275' # Or you could utilize an IP address.
+
+# Alter the socket port number in the line below to accommodate your 
+# specific instrument socket port. Traditionally, most Keysight Technologies, 
+# Agilent Technologies, LAN based RF instrumentation socket ports use 5025. 
+# Refer to your specific instrument User Guide for additional details.
+port = 5025
 
 # Configure File uploads
 UPLOAD_FOLDER = 'users_data/'
