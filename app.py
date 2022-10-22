@@ -88,6 +88,9 @@ def upload_online(reqPath):
     # Create an empty JSON graph object
     graph1JSON = []
 
+    # Create a va   riable to store a last uploaded csv name (only rebuild when clicked on Upload_Online link)
+    #last_graph = 0
+
     if request.method == 'POST':
         # check if the post request has the file part
         if 'file' not in request.files:
@@ -104,6 +107,7 @@ def upload_online(reqPath):
             
             file.save(os.path.join(session_folder, filename))
             flash("Result was successfully added")
+        
         """
         # Read csv content with pandas into dataframe starting from row 18 (otherwise pandas can't read properly the data)
         try:
@@ -142,7 +146,7 @@ def upload_online(reqPath):
     parentFolderPath = os.path.relpath(Path(absPath).parents[0], session_folder).replace("\\", "/")
     # Generate JSON graph from current session files object
     graph1JSON = generate_multiple_graphs(fileObjs, session_folder)
-
+    
     return render_template("upload_online.html", graph1JSON=graph1JSON, data={'files': fileObjs,
                                                  'parentFolder': parentFolderPath})
 

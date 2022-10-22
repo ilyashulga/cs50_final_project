@@ -59,7 +59,7 @@ def generate_graph(df, graph_title):
 def generate_multiple_graphs(fileObjs, session_folder):
     """Generate multiple lines chart from csv files in folder location"""
     fig = go.Figure()
-
+    
     # Iterate over files passed as a file object
     for file in fileObjs:
         # Read each csv content with pandas into dataframe starting from row 18 (otherwise pandas can't read properly the data)
