@@ -4,3 +4,8 @@ Flask-Session
 requests
 plotly
 pandas
+pyvisa
+datetime
+pathlib
+json
+functools
