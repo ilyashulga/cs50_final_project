@@ -8,6 +8,7 @@ import json
 import pandas as pd
 import plotly
 import plotly.express as px
+import plotly.graph_objects as go
 from pathlib import Path
 
 
@@ -53,6 +54,33 @@ def generate_graph(df, graph_title):
     # Convery plotly fig to JSON object
     graphJSON = json.dumps(fig, cls = plotly.utils.PlotlyJSONEncoder)
 
+    return graphJSON
+
+def generate_multiple_graphs(fileObjs, session_folder):
+    """Generate multiple lines chart from csv files in folder location"""
+    fig = go.Figure()
+
+    # Iterate over files passed as a file object
+    for file in fileObjs:
+        # Read each csv content with pandas into dataframe starting from row 18 (otherwise pandas can't read properly the data)
+        try:
+            df = pd.read_csv(os.path.join(session_folder, file["name"]), skiprows=18)
+        except:
+            return apology("Error in reading CSV files", 400)
+        #print(df.head())
+        # Change column names in dataframe to more intuitive
+        df.columns = ['Frequency[MHz]','Max(Ver,Hor)', 'Ver', 'Hor']
+        # Iterate over each file's rows and make required calculations/substitutions
+        for row in range(len(df)):
+            df.at[row,'Max(Ver,Hor)'] = max(df.at[row,'Hor'], df.at[row,'Ver'])
+            df.at[row,'Frequency[MHz]'] = df.at[row,'Frequency[MHz]']/1000000
+        # create xy chart using plotly library
+        fig.add_trace(go.Scatter(x=df["Frequency[MHz]"], y=df["Max(Ver,Hor)"], name=file["name"], mode="lines"))    
+        #fig.add_trace(go.line(df, x='Frequency[MHz]', y='Max(Ver,Hor)', log_x=True, template="plotly_white"))
+    # Change x-axis to log scale
+    fig.update_xaxes(type="log")
+    # Convery plotly fig to JSON object
+    graphJSON = json.dumps(fig, cls = plotly.utils.PlotlyJSONEncoder)
     return graphJSON
 
 def getIconClassForFilename(fName):

@@ -19,7 +19,7 @@ import datetime
 import os
 
 
-from helpers import apology, login_required, generate_graph, getIconClassForFilename
+from helpers import apology, login_required, generate_graph, getIconClassForFilename, generate_multiple_graphs
 
 # Configure File uploads
 UPLOAD_FOLDER = 'users_data/'
@@ -85,6 +85,7 @@ def upload_online(reqPath):
         return render_template("new_session.html")
     
     session_folder = db.execute("SELECT folder FROM sessions WHERE user_id=? AND is_open=1", session["user_id"])[0]["folder"]
+    # Create an empty JSON graph object
     graph1JSON = []
 
     if request.method == 'POST':
@@ -103,6 +104,7 @@ def upload_online(reqPath):
             
             file.save(os.path.join(session_folder, filename))
             flash("Result was successfully added")
+        """
         # Read csv content with pandas into dataframe starting from row 18 (otherwise pandas can't read properly the data)
         try:
             df = pd.read_csv(os.path.join(session_folder, filename), skiprows=18)
@@ -114,7 +116,7 @@ def upload_online(reqPath):
         
         # Generate JSON graph from dataframe
         graph1JSON = generate_graph(df, request.form.get("graph_title"))
-
+        """
     # Join the base and the requested path
     # could have done os.path.join, but safe_join ensures that files are not fetched from parent folders of the base folder
     absPath = safe_join(session_folder, reqPath)
@@ -138,7 +140,9 @@ def upload_online(reqPath):
     fileObjs = [fObjFromScan(x) for x in os.scandir(absPath)]
     # get parent directory url
     parentFolderPath = os.path.relpath(Path(absPath).parents[0], session_folder).replace("\\", "/")
-    print(fileObjs)
+    # Generate JSON graph from current session files object
+    graph1JSON = generate_multiple_graphs(fileObjs, session_folder)
+
     return render_template("upload_online.html", graph1JSON=graph1JSON, data={'files': fileObjs,
                                                  'parentFolder': parentFolderPath})
 
