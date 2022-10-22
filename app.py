@@ -71,17 +71,21 @@ def index():
     #return apology("Main Page will be here)", 200)
     return render_template("index.html", graph1JSON=1)
 
-@app.route("/upload_online", methods=["GET", "POST"])
+@app.route("/upload_online", methods=["GET", "POST"], defaults={'reqPath': ''})
+@app.route('/upload_online/<path:reqPath>')
 @login_required
-def upload_online():
+def upload_online(reqPath):
     """GUI for adding plots one-by-one"""
-    db.execute("UPDATE sessions SET is_open = 0 WHERE id = 11")
+    #db.execute("UPDATE sessions SET is_open = 0 WHERE id = 11")
     
     # Check if there is any unclosed test session for current user, if none - render a new session page
     try:
         session_is_open = db.execute("SELECT is_open FROM sessions WHERE is_open=1 AND user_id=?", session["user_id"])[0]["is_open"]
     except:
         return render_template("new_session.html")
+    
+    session_folder = db.execute("SELECT folder FROM sessions WHERE user_id=? AND is_open=1", session["user_id"])[0]["folder"]
+    graph1JSON = []
 
     if request.method == 'POST':
         # check if the post request has the file part
@@ -96,23 +100,47 @@ def upload_online():
             return redirect(request.url)
         if file and allowed_file(file.filename):
             filename = secure_filename(file.filename)
-            session_folder = db.execute("SELECT folder FROM sessions WHERE user_id=? AND is_open=1", session["user_id"])[0]["folder"]
+            
             file.save(os.path.join(session_folder, filename))
             flash("Result was successfully added")
-    # Read csv content with pandas into dataframe starting from row 18 (otherwise pandas can't read properly the data)
-    try:
-        df = pd.read_csv(os.path.join(session_folder, filename), skiprows=18)
-    except:
-        return render_template("upload_online.html")
-    
-    # Change column names in dataframe to more intuitive
-    df.columns = ['Frequency[MHz]','Max(Ver,Hor)', 'Ver', 'Hor']
-    
-    # Generate JSON graph from dataframe
-    graph1JSON = generate_graph(df, request.form.get("graph_title"))
-    
+        # Read csv content with pandas into dataframe starting from row 18 (otherwise pandas can't read properly the data)
+        try:
+            df = pd.read_csv(os.path.join(session_folder, filename), skiprows=18)
+        except:
+            return render_template("upload_online.html")
+        
+        # Change column names in dataframe to more intuitive
+        df.columns = ['Frequency[MHz]','Max(Ver,Hor)', 'Ver', 'Hor']
+        
+        # Generate JSON graph from dataframe
+        graph1JSON = generate_graph(df, request.form.get("graph_title"))
 
-    return render_template("upload_online.html", graph1JSON=graph1JSON)
+    # Join the base and the requested path
+    # could have done os.path.join, but safe_join ensures that files are not fetched from parent folders of the base folder
+    absPath = safe_join(session_folder, reqPath)
+
+    # Return 404 if path doesn't exist
+    if not os.path.exists(absPath):
+        return abort(404)
+
+    # Check if path is a file and serve
+    if os.path.isfile(absPath):
+        return send_file(absPath)
+
+    # Show directory contents
+    def fObjFromScan(x):
+        fileStat = x.stat()
+        # return file information for rendering
+        return {'name': x.name,
+                'fIcon': "bi bi-folder-fill" if os.path.isdir(x.path) else getIconClassForFilename(x.name),
+                'relPath': os.path.relpath(x.path, session_folder).replace("\\", "/"),
+                }
+    fileObjs = [fObjFromScan(x) for x in os.scandir(absPath)]
+    # get parent directory url
+    parentFolderPath = os.path.relpath(Path(absPath).parents[0], session_folder).replace("\\", "/")
+    print(fileObjs)
+    return render_template("upload_online.html", graph1JSON=graph1JSON, data={'files': fileObjs,
+                                                 'parentFolder': parentFolderPath})
 
 @app.route("/graphs_compare", methods=["GET", "POST"])
 @login_required
