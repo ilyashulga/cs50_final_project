@@ -142,8 +142,10 @@ def upload_online(reqPath):
                 'relPath': os.path.relpath(x.path, session_folder).replace("\\", "/"),
                 }
     fileObjs = [fObjFromScan(x) for x in os.scandir(absPath)]
+    
     # get parent directory url
     parentFolderPath = os.path.relpath(Path(absPath).parents[0], session_folder).replace("\\", "/")
+    
     # Generate JSON graph from current session files object
     graph1JSON = generate_multiple_graphs(fileObjs, session_folder)
     
