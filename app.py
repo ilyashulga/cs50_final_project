@@ -103,6 +103,76 @@ def upload_online(reqPath):
     #last_graph = 0
 
     if request.method == 'POST':
+        
+        # Ensure model was submitted
+        if not request.form.get("model"):
+            flash('Must specify Model')
+            return redirect(request.url)
+        
+        # Ensure model was submitted
+        if not request.form.get("layout"):
+            flash('Must specify layout')
+            return redirect(request.url)
+
+        # Check power supply voltage was submitted
+        if not request.form.get("v_ps"):
+            flash('Must specify power supply voltage (Vps)')
+            return redirect(request.url)
+        
+
+
+        if not request.form.get("r_load"):
+            flash('Must specify load resistor')
+            return redirect(request.url)    
+
+        # Introduce working point variables dict
+        curr_wp = {
+            "model": request.form.get("model"),
+            "layout": request.form.get("layout"),
+            "cl_ol": request.form['cl_ol'],
+            "v_ps": request.form.get("v_ps"),
+            "i_lim_ps": 0,
+            "r_load": request.form.get("r_load"),
+            "dc": 0,
+            "mode": "none",
+            "power": 0,
+            "i_out": 0,
+            "v_in": 0,
+            "i_in": 0,
+            "user_comment": "none",
+            "filename": "none",
+            "is_final": False  # true will mean graph will be visible via dash viewing application
+            }
+
+        # Check inputs specific for close_loop:
+        if request.form['cl_ol'] == 'close_loop':
+            if not request.form.get("i_lim_ps"):
+                flash('Must specify power supply current limit (I_lim_ps)')
+                return redirect(request.url)
+            # Store i_lim_ps in curr_wp dict
+            curr_wp["i_lim_ps"] = request.form.get("i_lim_ps")
+        
+        # If open loop is selected
+        # Check inputs specific for open_loop:
+        if request.form['cl_ol'] == 'open_loop':
+            if not request.form.get("dc"):
+                flash('Must specify duty cycle')
+                return redirect(request.url)
+            if not request.form.get("mode"):
+                flash('Must specify working mode')
+                return redirect(request.url)                 
+            # Store duty cycle and operational mode in curr_wp dict
+            curr_wp["dc"] = request.form.get("dc")
+            curr_wp["mode"] = request.form.get("mode")
+        
+        print(curr_wp)
+        
+        # Calculate all other parameters 
+
+        # Store all user input form data in user session param (to be used after as a starting point when page is refreshed)
+
+        # Write all relevant data to graphs table in plotter.db
+
         # check if the post request has the file part
         if 'file' not in request.files:
             flash('No file part')
@@ -118,7 +188,8 @@ def upload_online(reqPath):
             
             file.save(os.path.join(session_folder, filename))
             flash("Result was successfully added")
-        
+            return redirect(request.url)
+
         """
         # Read csv content with pandas into dataframe starting from row 18 (otherwise pandas can't read properly the data)
         try:
@@ -157,6 +228,8 @@ def upload_online(reqPath):
     # get parent directory url
     parentFolderPath = os.path.relpath(Path(absPath).parents[0], session_folder).replace("\\", "/")
     
+    # TODO Consider plotting graphs only if button is pressed / V is marked on ALL/some graphs
+
     # Generate JSON graph from current session files object
     graph1JSON = generate_multiple_graphs(fileObjs, session_folder)
     

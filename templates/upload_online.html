@@ -16,23 +16,21 @@
     </div>
     <div class="column right">
         <h1>Upload new File</h1>
-        <br><br><br>
-        <form method=post enctype=multipart/form-data>
+        <br><br>
+        <form method=post enctype=multipart/form-data action="/upload_online">
             <div class="mb-3">
-                <input autocomplete="off" autofocus class="form-control mx-auto w-auto" id="graph_title" name="graph_title" placeholder="Model" type="text">
-                <input autocomplete="off" autofocus class="form-control mx-auto w-auto" id="graph_title" name="graph_title" placeholder="AP Level" type="text">
+                <input autocomplete="off" autofocus class="form-control mx-auto w-auto" id="model" name="model" placeholder="Model" type="text">
+                <input autocomplete="off" autofocus class="form-control mx-auto w-auto" id="layout" name="layout" placeholder="Layout" type="text" not empty>
                 <br><br><br><br>
-                <form action="send('ol', 'dc', 'mode')"></form>
-                    <input type="radio" id="ol" name="mode" onclick="send('ol', 'dc', 'mode', 'i_lim_ps')">
-                    <label for="ol">Open Loop</label><br>
-                    <input type="radio" id="cl" checked="checked" name="mode" onclick="send('cl', 'dc', 'mode', 'i_lim_ps')">
-                    <label for="cl">Closed Loop</label><br>
-                </form>
+                <input type="radio" id="ol" name="cl_ol" value="open_loop" onclick="send('ol', 'dc', 'mode', 'i_lim_ps')">
+                <label for="ol">Open Loop</label><br>
+                <input type="radio" id="cl" checked="checked" name="cl_ol" value="close_loop" onclick="send('cl', 'dc', 'mode', 'i_lim_ps')">
+                <label for="cl">Closed Loop</label><br>
                 </label>
-                <input autocomplete="off" autofocus class="form-control mx-auto w-auto" id="v_ps" name="v_ps" placeholder="Vps (Volt)" type="number" min="10" max="130">
-                <input autocomplete="off" autofocus class="form-control mx-auto w-auto" id="i_lim_ps" name="i_lim_ps" placeholder="I_lim_ps (A)" type="number" min="0.1" max="30.0">
-                <input autocomplete="off" autofocus class="form-control mx-auto w-auto" id="r_load" name="r_load" placeholder="Load Resistor (Ohm)" type="number" min="0.1" max="200.0" >
-                <input autocomplete="off" autofocus class="form-control mx-auto w-auto" id="dc" name="dc" placeholder="Duty Cycle (%)" type="number" min="1" max="100" disabled>
+                <input autocomplete="off" autofocus class="form-control mx-auto w-auto" id="v_ps" name="v_ps" placeholder="Vps (Volt)" type="number" min="10" max="130" step="any">
+                <input autocomplete="off" autofocus class="form-control mx-auto w-auto" id="i_lim_ps" name="i_lim_ps" placeholder="I_lim_ps (A)" type="number" step="any">
+                <input autocomplete="off" autofocus class="form-control mx-auto w-auto" id="r_load" name="r_load" placeholder="Load Resistor (Ohm)" type="number" step="any">
+                <input autocomplete="off" autofocus class="form-control mx-auto w-auto" id="dc" name="dc" placeholder="Duty Cycle (%)" type="number" disabled step="any">
                 <label for="mode">Chose operating mode:</label>
                     <select name="mode" id="mode" disabled>
                         <option value="buck">Buck</option>
@@ -42,13 +40,10 @@
                         <option value="safety">Safety</option>
                     </select>
             </div><br>
-        </form> 
-        <form method=post enctype=multipart/form-data>  
             <input type=file name=file>
             <input type=submit value=Upload>
         </form>
     </div>
-
 </div>
 
 <table class="table table-striped table-responsive">
