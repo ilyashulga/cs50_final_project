@@ -136,6 +136,7 @@ def upload_online(reqPath):
             "dc": 0,
             "mode": "none",
             "power": 0,
+            "sas": "1/100",
             "i_out": 0,
             "v_in": 0,
             "i_in": 0,
