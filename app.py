@@ -130,16 +130,18 @@ def upload_online(reqPath):
             "model": request.form.get("model"),
             "layout": request.form.get("layout"),
             "cl_ol": request.form['cl_ol'],
-            "v_ps": request.form.get("v_ps"),
+            "v_ps": float(request.form.get("v_ps")),
             "i_lim_ps": 0,
-            "r_load": request.form.get("r_load"),
+            "r_load": float(request.form.get("r_load")),
             "dc": 0,
             "mode": "none",
-            "power": 0,
-            "sas": "1/100",
+            "power_in": 0,
+            "sas_ser": 1,
+            "sas_par": 100,
             "i_out": 0,
             "v_in": 0,
             "i_in": 0,
+            "eff": 0.98,
             "user_comment": "none",
             "filename": "none",
             "is_final": False  # true will mean graph will be visible via dash viewing application
@@ -150,9 +152,20 @@ def upload_online(reqPath):
             if not request.form.get("i_lim_ps"):
                 flash('Must specify power supply current limit (I_lim_ps)')
                 return redirect(request.url)
-            # Store i_lim_ps in curr_wp dict
-            curr_wp["i_lim_ps"] = request.form.get("i_lim_ps")
-        
+            # Calculate working point parameters
+            curr_wp["i_lim_ps"] = float(request.form.get("i_lim_ps"))
+            curr_wp["v_in"] = curr_wp["v_ps"] - (curr_wp["i_lim_ps"] - curr_wp["v_ps"] / curr_wp["sas_par"]) * curr_wp["sas_ser"]
+            curr_wp["power_in"] = curr_wp["i_lim_ps"] * curr_wp["v_ps"] - pow((curr_wp["v_ps"] / curr_wp["sas_par"]), 2) * curr_wp["sas_par"] - pow((curr_wp["i_lim_ps"] - curr_wp["v_ps"] / curr_wp["sas_par"]), 2) * curr_wp["sas_ser"]
+            curr_wp["v_out"] = pow(curr_wp["power_in"] * curr_wp["eff"] * curr_wp["r_load"], 0.5) 
+            curr_wp["i_out"] = pow(curr_wp["power_in"] * curr_wp["eff"] / curr_wp["r_load"], 0.5)
+            curr_wp["i_in"] = curr_wp["i_lim_ps"] - curr_wp["v_in"] / ( curr_wp["sas_par"] + curr_wp["sas_ser"] )
+            if curr_wp["v_out"] / curr_wp["v_in"] > 1:
+                curr_wp["dc"] = (curr_wp["v_out"] - curr_wp["v_in"]) / curr_wp["v_out"]
+                curr_wp["mode"] = "Boost"
+            else:
+                curr_wp["dc"] = curr_wp["v_out"] / curr_wp["v_in"]
+                curr_wp["mode"] = "Buck"
+        print(curr_wp)
         # If open loop is selected
         # Check inputs specific for open_loop:
         if request.form['cl_ol'] == 'open_loop':
