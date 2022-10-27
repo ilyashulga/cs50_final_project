@@ -269,7 +269,8 @@ def upload_online(reqPath):
                 'relPath': os.path.relpath(x.path, session_folder).replace("\\", "/"),
                 }
     fileObjs = [fObjFromScan(x) for x in os.scandir(absPath)]
-    
+    # TODO add delete file button
+    # TODO add is_final flag (or leave final flag assesible from DASH)
     # get parent directory url
     parentFolderPath = os.path.relpath(Path(absPath).parents[0], session_folder).replace("\\", "/")
     
@@ -279,7 +280,7 @@ def upload_online(reqPath):
 
     # Generate JSON graph from current session files object
     graph1JSON = generate_multiple_graphs(fileObjs, session_folder)
-    
+    # TODO add limit lines for class A/B
     return render_template("upload_online.html", graph1JSON=graph1JSON, data={'files': fileObjs,
                                                  'parentFolder': parentFolderPath}, curr_wp=session["curr_wp"])
 
