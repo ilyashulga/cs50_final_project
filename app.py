@@ -99,6 +99,9 @@ def upload_online(reqPath):
     # Create an empty JSON graph object
     graph1JSON = []
 
+    # Create an empty dict for storing curr_wp data in user session file
+    #session["curr_wp"] = {}
+
     # Create a va   riable to store a last uploaded csv name (only rebuild when clicked on Upload_Online link)
     #last_graph = 0
 
@@ -142,7 +145,7 @@ def upload_online(reqPath):
             "v_in": 0,
             "i_in": 0,
             "eff": 0.98,
-            "user_comment": "none",
+            "user_comment": request.form.get("comment"),
             "filename": "none",
             "is_final": False  # true will mean graph will be visible via dash viewing application
             }
@@ -152,6 +155,7 @@ def upload_online(reqPath):
             if not request.form.get("i_lim_ps"):
                 flash('Must specify power supply current limit (I_lim_ps)')
                 return redirect(request.url)
+            
             # Calculate working point parameters
             curr_wp["i_lim_ps"] = float(request.form.get("i_lim_ps"))
             curr_wp["v_in"] = curr_wp["v_ps"] - (curr_wp["i_lim_ps"] - curr_wp["v_ps"] / curr_wp["sas_par"]) * curr_wp["sas_ser"]
@@ -159,13 +163,18 @@ def upload_online(reqPath):
             curr_wp["v_out"] = pow(curr_wp["power_in"] * curr_wp["eff"] * curr_wp["r_load"], 0.5) 
             curr_wp["i_out"] = pow(curr_wp["power_in"] * curr_wp["eff"] / curr_wp["r_load"], 0.5)
             curr_wp["i_in"] = curr_wp["i_lim_ps"] - curr_wp["v_in"] / ( curr_wp["sas_par"] + curr_wp["sas_ser"] )
-            if curr_wp["v_out"] / curr_wp["v_in"] > 1:
+            
+            # Determine operational mode
+            if curr_wp["v_out"] / curr_wp["v_in"] > 1.02:
                 curr_wp["dc"] = (curr_wp["v_out"] - curr_wp["v_in"]) / curr_wp["v_out"]
                 curr_wp["mode"] = "Boost"
+            elif curr_wp["v_out"] / curr_wp["v_in"] > 0.98:
+                curr_wp["mode"] = "Buck-Boost"
+                curr_wp["dc"] = curr_wp["v_out"] / curr_wp["v_in"]
             else:
                 curr_wp["dc"] = curr_wp["v_out"] / curr_wp["v_in"]
                 curr_wp["mode"] = "Buck"
-        print(curr_wp)
+        
         # If open loop is selected
         # Check inputs specific for open_loop:
         if request.form['cl_ol'] == 'open_loop':
@@ -175,16 +184,33 @@ def upload_online(reqPath):
             if not request.form.get("mode"):
                 flash('Must specify working mode')
                 return redirect(request.url)                 
-            # Store duty cycle and operational mode in curr_wp dict
-            curr_wp["dc"] = request.form.get("dc")
+            # Get user input of duty cycle and operational mode and save into curr_wp dict
+            curr_wp["dc"] = float(request.form.get("dc"))
             curr_wp["mode"] = request.form.get("mode")
-        
-        print(curr_wp)
-        
-        # Calculate all other parameters 
+            
+            # Perform calculations based on user-selected operational mode
+            if curr_wp["mode"] == "buck":
+                curr_wp["v_out"] = curr_wp["v_ps"] * curr_wp["dc"]
+            elif curr_wp["mode"] == "boost":
+                curr_wp["v_out"] = curr_wp["v_ps"] / (1 - curr_wp["dc"])
+            elif curr_wp["mode"] == "do_nothing":
+                curr_wp["v_out"] = 0
+            # Complete remaining calculations for open loop operation
+            if curr_wp["v_out"] > 0:
+                curr_wp["power_in"] = pow(curr_wp["v_out"], 2) / curr_wp["r_load"] / curr_wp["eff"]
+                curr_wp["i_out"] = curr_wp["v_out"] / curr_wp["r_load"]
+                curr_wp["i_in"] = curr_wp["power_in"] / curr_wp["v_out"]
+            curr_wp["v_in"] = curr_wp["v_ps"]
+
+        # Round all numbers in curr_wp dict to two decimal points
+        for key in curr_wp:
+            print(type(curr_wp[key]))
+            if type(curr_wp[key]) == float or type(curr_wp[key]) == int:
+                curr_wp[key] = round(curr_wp[key], 2)
 
         # Store all user input form data in user session param (to be used after as a starting point when page is refreshed)
-
+        session["curr_wp"] = curr_wp
+        
         # Write all relevant data to graphs table in plotter.db
 
         # check if the post request has the file part
@@ -199,7 +225,7 @@ def upload_online(reqPath):
             return redirect(request.url)
         if file and allowed_file(file.filename):
             filename = secure_filename(file.filename)
-            
+            # TODO add a filname based on user input and WP
             file.save(os.path.join(session_folder, filename))
             flash("Result was successfully added")
             return redirect(request.url)
@@ -217,6 +243,11 @@ def upload_online(reqPath):
         # Generate JSON graph from dataframe
         graph1JSON = generate_graph(df, request.form.get("graph_title"))
         """
+    
+    try:
+        print(session["curr_wp"])
+    except:
+        print("session['curr_wp'] is empty")
     # Join the base and the requested path
     # could have done os.path.join, but safe_join ensures that files are not fetched from parent folders of the base folder
     absPath = safe_join(session_folder, reqPath)
@@ -244,11 +275,13 @@ def upload_online(reqPath):
     
     # TODO Consider plotting graphs only if button is pressed / V is marked on ALL/some graphs
 
+    # TODO add multiple files upload page - upload offline or similar
+
     # Generate JSON graph from current session files object
     graph1JSON = generate_multiple_graphs(fileObjs, session_folder)
     
     return render_template("upload_online.html", graph1JSON=graph1JSON, data={'files': fileObjs,
-                                                 'parentFolder': parentFolderPath})
+                                                 'parentFolder': parentFolderPath}, curr_wp=session["curr_wp"])
 
 @app.route("/graphs_compare", methods=["GET", "POST"])
 @login_required
@@ -456,4 +489,4 @@ def getFiles(reqPath):
 
 
 if __name__ == '__main__':
-    app.run()
+    app.run(debug=True)

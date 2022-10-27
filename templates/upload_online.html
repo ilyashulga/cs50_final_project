@@ -19,20 +19,21 @@
         <br><br>
         <form method=post enctype=multipart/form-data action="/upload_online">
             <div class="mb-3">
-                <input autocomplete="off" autofocus class="form-control mx-auto w-auto" id="model" name="model" placeholder="Model" type="text">
-                <input autocomplete="off" autofocus class="form-control mx-auto w-auto" id="layout" name="layout" placeholder="Layout" type="text" not empty>
+                <label for="model"></label>
+                <input autocomplete="off" autofocus class="form-control mx-auto w-auto" id="model" name="model" placeholder="Model" type="text" value={{ curr_wp["model"] }}>
+                <input autocomplete="off" autofocus class="form-control mx-auto w-auto" id="layout" name="layout" placeholder="Layout" type="text" not empty value={{ curr_wp["layout"] }}>
                 <br><br><br><br>
                 <input type="radio" id="ol" name="cl_ol" value="open_loop" onclick="send('ol', 'dc', 'mode', 'i_lim_ps')">
                 <label for="ol">Open Loop</label><br>
                 <input type="radio" id="cl" checked="checked" name="cl_ol" value="close_loop" onclick="send('cl', 'dc', 'mode', 'i_lim_ps')">
                 <label for="cl">Closed Loop</label><br>
                 </label>
-                <input autocomplete="off" autofocus class="form-control mx-auto w-auto" id="v_ps" name="v_ps" placeholder="Vps (Volt)" type="number" min="10" max="130" step="any">
-                <input autocomplete="off" autofocus class="form-control mx-auto w-auto" id="i_lim_ps" name="i_lim_ps" placeholder="I_lim_ps (A)" type="number" step="any">
-                <input autocomplete="off" autofocus class="form-control mx-auto w-auto" id="r_load" name="r_load" placeholder="Load Resistor (Ohm)" type="number" step="any">
-                <input autocomplete="off" autofocus class="form-control mx-auto w-auto" id="dc" name="dc" placeholder="Duty Cycle (%)" type="number" disabled step="any">
+                <input autocomplete="off" autofocus class="form-control mx-auto w-auto" id="v_ps" name="v_ps" placeholder="Vps (Volt)" type="number" min="10" max="130" step="any" value={{ curr_wp["v_ps"] }}>
+                <input autocomplete="off" autofocus class="form-control mx-auto w-auto" id="i_lim_ps" name="i_lim_ps" placeholder="I_lim_ps (A)" type="number" step="any" value={{ curr_wp["i_lim_ps"] }}>
+                <input autocomplete="off" autofocus class="form-control mx-auto w-auto" id="r_load" name="r_load" placeholder="Load Resistor (Ohm)" type="number" step="any" value={{ curr_wp["r_load"] }}>
+                <input autocomplete="off" autofocus class="form-control mx-auto w-auto" id="dc" name="dc" placeholder="Duty Cycle (%)" type="number" disabled step="any" value={{ curr_wp["dc"] }}>
                 <label for="mode">Chose operating mode:</label>
-                    <select name="mode" id="mode" disabled>
+                    <select name="mode" id="mode" disabled value={{ curr_wp["mode"] }}>
                         <option value="buck">Buck</option>
                         <option value="boost">Boost</option>
                         <option value="buck_boost">Buck-Boost</option>
@@ -40,6 +41,7 @@
                         <option value="safety">Safety</option>
                     </select>
             </div><br>
+            <input autocomplete="off" autofocus class="form-control mx-auto w-auto" id="comment" name="comment" placeholder="Comment..." type="text" value={{ curr_wp["user_comment"] }}>
             <input type=file name=file>
             <input type=submit value=Upload>
         </form>
