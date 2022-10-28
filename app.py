@@ -96,6 +96,7 @@ def upload_online(reqPath):
         return render_template("new_session.html")
     
     session_folder = db.execute("SELECT folder FROM sessions WHERE user_id=? AND is_open=1", session["user_id"])[0]["folder"]
+    session_id = db.execute("SELECT id FROM sessions WHERE user_id=? and is_open=1", session["user_id"])[0]["id"]
     # Create an empty JSON graph object
     graph1JSON = []
 
@@ -204,14 +205,12 @@ def upload_online(reqPath):
 
         # Round all numbers in curr_wp dict to two decimal points
         for key in curr_wp:
-            print(type(curr_wp[key]))
             if type(curr_wp[key]) == float or type(curr_wp[key]) == int:
                 curr_wp[key] = round(curr_wp[key], 2)
 
         # Store all user input form data in user session param (to be used after as a starting point when page is refreshed)
         session["curr_wp"] = curr_wp
         
-        # Write all relevant data to graphs table in plotter.db
 
         # check if the post request has the file part
         if 'file' not in request.files:
@@ -225,10 +224,16 @@ def upload_online(reqPath):
             return redirect(request.url)
         if file and allowed_file(file.filename):
             filename = secure_filename(file.filename)
+            filename = curr_wp["model"] + '_' + curr_wp["layout"] + '_WP_' + curr_wp["cl_ol"] + '_' + curr_wp["mode"] + '_Power_' + str(curr_wp["power_in"]) + '_' + curr_wp["user_comment"] + '.csv'
             # TODO add a filname based on user input and WP
             file.save(os.path.join(session_folder, filename))
             flash("Result was successfully added")
+            db.execute("INSERT INTO graphs (session_id, model, layout, is_cl, v_in, v_out, i_in, i_load, dc, power, mode, comment, filename, timestamp) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", session_id,
+                     curr_wp["model"], curr_wp["layout"], 1 if curr_wp["cl_ol"] == "close_loop" else  0, curr_wp["v_in"], curr_wp["v_out"], curr_wp["i_in"], curr_wp["i_out"], curr_wp["dc"],
+                      curr_wp["power_in"], curr_wp["mode"], curr_wp["user_comment"], filename, datetime.datetime.now().strftime("%H:%M:%S_%d%m%Y"))
             return redirect(request.url)
+        # Write all relevant data to graphs table in plotter.db
+
 
         """
         # Read csv content with pandas into dataframe starting from row 18 (otherwise pandas can't read properly the data)
@@ -244,10 +249,6 @@ def upload_online(reqPath):
         graph1JSON = generate_graph(df, request.form.get("graph_title"))
         """
     
-    try:
-        print(session["curr_wp"])
-    except:
-        print("session['curr_wp'] is empty")
     # Join the base and the requested path
     # could have done os.path.join, but safe_join ensures that files are not fetched from parent folders of the base folder
     absPath = safe_join(session_folder, reqPath)
