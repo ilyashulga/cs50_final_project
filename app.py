@@ -101,7 +101,7 @@ def upload_online(reqPath):
     graph1JSON = []
 
     # Create an empty dict for storing curr_wp data in user session file
-    #session["curr_wp"] = {}
+    session["curr_wp"] = {}
 
     # Create a va   riable to store a last uploaded csv name (only rebuild when clicked on Upload_Online link)
     #last_graph = 0
@@ -143,6 +143,7 @@ def upload_online(reqPath):
             "sas_ser": 1,
             "sas_par": 100,
             "i_out": 0,
+            "v_out": 0,
             "v_in": 0,
             "i_in": 0,
             "eff": 0.98,
@@ -197,7 +198,7 @@ def upload_online(reqPath):
                 curr_wp["v_out"] = curr_wp["v_ps"] * curr_wp["dc"]
             elif curr_wp["mode"] == "Boost":
                 curr_wp["v_out"] = curr_wp["v_ps"] / (1 - curr_wp["dc"])
-            elif curr_wp["mode"] == "Do_nothing":
+            elif curr_wp["mode"] == "Do_Nothing":
                 curr_wp["v_out"] = 0
             # Complete remaining calculations for open loop operation
             if curr_wp["v_out"] > 0:
@@ -279,17 +280,19 @@ def upload_online(reqPath):
     parentFolderPath = os.path.relpath(Path(absPath).parents[0], session_folder).replace("\\", "/")
     
     # Read current session graphs data from SQL
-    session_results_table = db.execute("SELECT * FROM graphs WHERE session_id=?", session_id)
-    print(session_results_table)
+    try:
+        session_results_table = db.execute("SELECT * FROM graphs WHERE session_id=?", session_id)
+    except:
+        session_results_table = {}
     # TODO Consider plotting graphs only if button is pressed / V is marked on ALL/some graphs
 
     # TODO add multiple files upload page - upload offline or similar
 
     # Generate JSON graph from current session files object
-    graph1JSON = generate_multiple_graphs(fileObjs, session_folder)
+    graph1JSON = generate_multiple_graphs(session_results_table, session_folder)
     # TODO add limit lines for class A/B
     return render_template("upload_online.html", graph1JSON=graph1JSON, data={'files': fileObjs,
-                                                 'parentFolder': parentFolderPath}, curr_wp=session["curr_wp"], session_results_table=session_results_table)
+                                                 'parentFolder': parentFolderPath}, curr_wp=session["curr_wp"], session_results_table=session_results_table, enumerate=enumerate)
 
 @app.route("/graphs_compare", methods=["GET", "POST"])
 @login_required
@@ -347,13 +350,17 @@ def login():
 
         # Remember which user has logged in
         session["user_id"] = rows[0]["id"]
-
+        session["user_name"] = rows[0]["username"]
+        try:
+            session["id"] = db.execute("SELECT id FROM sessions WHERE is_open=1 AND user_id=?", session['user_id'])[0]['id']
+        except:
+            return redirect("/")
         # Check if user has opened session to continue uploads
         try:
             session["session"] = db.execute("SELECT name FROM sessions WHERE is_open=1 AND user_id=?", session['user_id'])[0]['name']
         except:
             return redirect("/")
-        print(session["session"])
+
         # Redirect user to home page
         return redirect("/")
 
@@ -418,6 +425,10 @@ def new_session():
             apology("Can't open new session", 400)
         session["session"] = db.execute("SELECT name FROM sessions WHERE user_id=? AND is_open=1", session["user_id"])[0]['name']
         db.execute("UPDATE sessions SET folder = ? WHERE user_id=? AND is_open=1", create_test_session_folder(), session["user_id"])
+        try:
+            session["id"] = db.execute("SELECT id FROM sessions WHERE is_open=1 AND user_id=?", session['user_id'])[0]['id']
+        except:
+            apology("Can't save session id", 400)
         return redirect("/upload_online")
 
 @app.route("/close_session", methods=["GET", "POST"])
@@ -494,6 +505,22 @@ def getFiles(reqPath):
     return render_template('files.html', data={'files': fileObjs,
                                                  'parentFolder': parentFolderPath})
 
+
+@app.route('/delete_item', methods=['GET', 'POST'])
+@login_required
+def delete_item():
+    if request.method == "POST":
+        #print(session["id"])
+        #print(request.form.get("delete"))
+        session_folder = db.execute("SELECT folder FROM sessions WHERE id=?", session["id"])[0]['folder']
+        file_name = db.execute("SELECT filename FROM graphs WHERE id=?", request.form.get("delete"))[0]['filename']
+        os.remove(os.path.join(session_folder, file_name))
+        db.execute("DELETE FROM graphs WHERE id=?", request.form.get("delete"))
+    #item = self.session.query(Item).get(item_id)
+    
+    #self.session.delete(item)
+    #db.session.commit()
+    return redirect("/upload_online")
 
 
 if __name__ == '__main__':

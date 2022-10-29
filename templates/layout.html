@@ -45,7 +45,7 @@
                                 <button class="btn btn-primary" type="submit">Close Test Session</button>
                             </form>
                             {% endif %}
-                            <li class="nav-item"><a class="nav-link" href="/">Logged in user: {{ session["user_id"] }}</a></li>
+                            <li class="nav-item"><a class="nav-link" href="/">Logged in user: {{ session["user_name"] }}</a></li>
                             <li class="nav-item"><a class="nav-link" href="/logout">Log Out</a></li>
                         </ul>
                     {% else %}

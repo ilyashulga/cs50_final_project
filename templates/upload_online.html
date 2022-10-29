@@ -34,11 +34,11 @@
                 <input autocomplete="off" autofocus class="form-control mx-auto w-auto" id="dc" name="dc" placeholder="Duty Cycle (%)" type="number" disabled step="any" value={{ curr_wp["dc"] }}>
                 <label for="mode">Chose operating mode:</label>
                     <select name="mode" id="mode" disabled value={{ curr_wp["mode"] }}>
-                        <option value="buck">Buck</option>
-                        <option value="boost">Boost</option>
-                        <option value="buck_boost">Buck-Boost</option>
-                        <option value="do_nothing">Do Nothing</option>
-                        <option value="safety">Safety</option>
+                        <option value="Buck">Buck</option>
+                        <option value="Boost">Boost</option>
+                        <option value="Buck_Boost">Buck-Boost</option>
+                        <option value="Do_Nothing">Do Nothing</option>
+                        <option value="Safety">Safety</option>
                     </select>
             </div><br>
             <input autocomplete="off" autofocus class="form-control mx-auto w-auto" id="comment" name="comment" placeholder="Comment..." type="text" value={{ curr_wp["user_comment"] }}>
@@ -51,6 +51,7 @@
 <table class="table table-striped table-responsive">
     <thead>
         <tr>
+            <th>#</th>
             <th>Timestamp</th>
             <th>Model</th>
             <th>Layout</th>
@@ -65,11 +66,13 @@
             <th>Link to *.csv</th>
             <th>Is Final</th>
             <th>Comment</th>
+            <th>Delete Entry</th>
         </tr>
     </thead>
     <tbody>
-        {% for row in session_results_table %}
+        {% for index, row in enumerate(session_results_table) %}
         <tr>
+            <td>{{ index }}</td>
             <td>{{ row['timestamp'] }}</td>
             <td>{{ row['model'] }}</td>
             <td>{{ row['layout'] }}</td>
@@ -88,6 +91,11 @@
             </td>
             <td>{{ "Yes" if row['is_final']==1 else "No" }}</td>
             <td>{{ row['comment'] }}</td>
+            <td>
+                <form action="/delete_item" method="post" value="{{ row['id'] }}">
+                    <button name="delete" value="{{ row['id'] }}" class="btn btn-primary" type="submit">Delete</button>
+                </form>
+            </td>
         </tr>
         {% endfor %}
     </tbody>
