@@ -166,6 +166,9 @@ def upload_online(reqPath):
             curr_wp["i_in"] = curr_wp["i_lim_ps"] - curr_wp["v_in"] / ( curr_wp["sas_par"] + curr_wp["sas_ser"] )
             
             # Determine operational mode
+            print(curr_wp["v_out"])
+            print(curr_wp["v_in"])
+            print(curr_wp["v_out"] / curr_wp["v_in"])
             if curr_wp["v_out"] / curr_wp["v_in"] > 1.02:
                 curr_wp["dc"] = (curr_wp["v_out"] - curr_wp["v_in"]) / curr_wp["v_out"]
                 curr_wp["mode"] = "Boost"
@@ -190,11 +193,11 @@ def upload_online(reqPath):
             curr_wp["mode"] = request.form.get("mode")
             
             # Perform calculations based on user-selected operational mode
-            if curr_wp["mode"] == "buck":
+            if curr_wp["mode"] == "Buck":
                 curr_wp["v_out"] = curr_wp["v_ps"] * curr_wp["dc"]
-            elif curr_wp["mode"] == "boost":
+            elif curr_wp["mode"] == "Boost":
                 curr_wp["v_out"] = curr_wp["v_ps"] / (1 - curr_wp["dc"])
-            elif curr_wp["mode"] == "do_nothing":
+            elif curr_wp["mode"] == "Do_nothing":
                 curr_wp["v_out"] = 0
             # Complete remaining calculations for open loop operation
             if curr_wp["v_out"] > 0:
@@ -225,7 +228,7 @@ def upload_online(reqPath):
         if file and allowed_file(file.filename):
             filename = secure_filename(file.filename)
             filename = curr_wp["model"] + '_' + curr_wp["layout"] + '_WP_' + curr_wp["cl_ol"] + '_' + curr_wp["mode"] + '_Power_' + str(curr_wp["power_in"]) + '_' + curr_wp["user_comment"] + '.csv'
-            # TODO add a filname based on user input and WP
+            # Filname based on user input and calculated WP
             file.save(os.path.join(session_folder, filename))
             flash("Result was successfully added")
             db.execute("INSERT INTO graphs (session_id, model, layout, is_cl, v_in, v_out, i_in, i_load, dc, power, mode, comment, filename, timestamp) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", session_id,
@@ -275,6 +278,9 @@ def upload_online(reqPath):
     # get parent directory url
     parentFolderPath = os.path.relpath(Path(absPath).parents[0], session_folder).replace("\\", "/")
     
+    # Read current session graphs data from SQL
+    session_results_table = db.execute("SELECT * FROM graphs WHERE session_id=?", session_id)
+    print(session_results_table)
     # TODO Consider plotting graphs only if button is pressed / V is marked on ALL/some graphs
 
     # TODO add multiple files upload page - upload offline or similar
@@ -283,7 +289,7 @@ def upload_online(reqPath):
     graph1JSON = generate_multiple_graphs(fileObjs, session_folder)
     # TODO add limit lines for class A/B
     return render_template("upload_online.html", graph1JSON=graph1JSON, data={'files': fileObjs,
-                                                 'parentFolder': parentFolderPath}, curr_wp=session["curr_wp"])
+                                                 'parentFolder': parentFolderPath}, curr_wp=session["curr_wp"], session_results_table=session_results_table)
 
 @app.route("/graphs_compare", methods=["GET", "POST"])
 @login_required

@@ -51,40 +51,49 @@
 <table class="table table-striped table-responsive">
     <thead>
         <tr>
-            <th>Name</th>
-            <th>Modified Time</th>
-            <th>Size</th>
+            <th>Timestamp</th>
+            <th>Model</th>
+            <th>Layout</th>
+            <th>Close/Open Loop</th>
+            <th>Mode</th>
+            <th>Duty Cycle</th>
+            <th>Vin [V]</th>
+            <th>Iin [A]</th>
+            <th>Vout [V]</th>
+            <th>Iout [A]</th>
+            <th>Power [W]</th>
+            <th>Link to *.csv</th>
+            <th>Is Final</th>
+            <th>Comment</th>
         </tr>
     </thead>
     <tbody>
+        {% for row in session_results_table %}
         <tr>
+            <td>{{ row['timestamp'] }}</td>
+            <td>{{ row['model'] }}</td>
+            <td>{{ row['layout'] }}</td>
+            <td>{{ "Close Loop" if row['is_cl']==1 else "Open Loop" }}</td>
+            <td>{{ row['mode'] }}</td>
+            <td>{{ row['dc'] }}</td>
+            <td>{{ row['v_in'] }}</td>
+            <td>{{ row['i_in'] }}</td>
+            <td>{{ row['v_out'] }}</td>
+            <td>{{ row['i_load'] }}</td>
+            <td>{{ row['power'] }}</td>
             <td>
-                <a href="{{ url_for('getFiles', reqPath=data['parentFolder']) }}">
-                    <span><i class="bi bi-folder-symlink" style="margin-right:0.3em"></i>Parent Directory</span>
+                <a href= "{{ url_for('getFiles', reqPath=row['filename']) }}">
+                <span><i style="margin-right:0.3em"></i>Download</span>
                 </a>
             </td>
-            <td></td>
-            <td></td>
-        </tr>
-        {% for fileObj in data['files'] %}
-        <tr>
-            <td>
-                <a href="{{ url_for('getFiles', reqPath=fileObj['relPath']) }}">
-                    <span><i class="{{fileObj['fIcon']}}" style="margin-right:0.3em"></i>{{ fileObj['name'] }}</span>
-                </a>
-            </td>
-            <td>{{fileObj['mTime']}}</td>
-            <td>{{fileObj['size']}}</td>
+            <td>{{ "Yes" if row['is_final']==1 else "No" }}</td>
+            <td>{{ row['comment'] }}</td>
         </tr>
         {% endfor %}
     </tbody>
 </table>
 
-<input type="checkbox"  id="check1" onclick="send('check1', 'input1')" text="Open Loop">
-<input type="text"  id="input1" disabled><br>
 
-<input type="checkbox"  id="check2" onclick="send('check2', 'input2')", text="Closed Loop">
-<input type="text"  id="input2" disabled><br>
 
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.9.1/font/bootstrap-icons.css">
 
@@ -118,8 +127,6 @@ th {text-align: left;}
             let input3 = document.getElementById(inputId3);
             
             // handle checkbox and input state
-
-            
             if (checkbox.checked && checkboxId == 'ol') {
                 input1.disabled = 0;
                 input2.disabled = 0;
@@ -128,7 +135,6 @@ th {text-align: left;}
                 input2.value = data[inputId2];
                 input3.value = data[inputId3];
                 input3.value = null;
-            
             }
             else if (checkbox.checked && checkboxId == 'cl') {
                 input1.disabled = 1;
@@ -138,10 +144,8 @@ th {text-align: left;}
                 data[inputId2] = input2.value;
                 data[inputId3] = input3.value;
                 input1.value = null;
-                input2.value = null;
-                
-            }
-            
+                input2.value = null;  
+            }  
         }
         // --------------------Enabled and Disables blocks----------------
 </script>
