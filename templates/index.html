@@ -1,19 +1,19 @@
 {% extends "layout.html" %}
 
 {% block title %}
-    My Portfolio
+    EMC Plotter DB
 {% endblock %}
 
 {% block main %}
-<h2> EMC Plotter ver.1.0 </h2>
-
-<div id = "chart1"></div>
+<h2> EMC Plotter DB ver.0.1 (ALPHA) </h2>
+<img src="/static/EMC_LAB.jpg">
+<!--<div id = "chart1"></div>-->
 
 <!-- plotly CDN -->
 <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 <script>
-    var graph1 = {{ graph1JSON | safe }}
-    Plotly.plot("chart1", graph1, {})
+    //var graph1 = {{ graph1JSON | safe }}
+    //Plotly.plot("chart1", graph1, {})
 </script>
 
 {% endblock %}

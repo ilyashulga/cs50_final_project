@@ -1,14 +1,16 @@
 {% extends "layout.html" %}
 
 {% block title %}
-    Buy Stock
+    New Session
 {% endblock %}
 
 {% block main %}
+    <h1>Open new session</h1>
+    <br>
     <form action="/new_session" method="post">
         <div class="mb-3">
             <input autocomplete="off" autofocus class="form-control mx-auto w-auto" id="session_name" name="session_name" placeholder="Session name" type="text">
-        </div><br>
+        </div>
         <div class="mb-3">
             <input autocomplete="off" autofocus class="form-control mx-auto w-auto" id="session_description" name="session_description" placeholder="Session description" type="text">
         </div>
