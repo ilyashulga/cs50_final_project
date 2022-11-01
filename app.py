@@ -101,7 +101,7 @@ def upload_online(reqPath):
     graph1JSON = []
 
     # Create an empty dict for storing curr_wp data in user session file
-    session["curr_wp"] = {}
+    #session["curr_wp"] = {}
 
     # Create a va   riable to store a last uploaded csv name (only rebuild when clicked on Upload_Online link)
     #last_graph = 0
@@ -287,7 +287,7 @@ def upload_online(reqPath):
     # TODO Consider plotting graphs only if button is pressed / V is marked on ALL/some graphs
 
     # TODO add multiple files upload page - upload offline or similar
-
+    
     # Generate JSON graph from current session files object
     graph1JSON = generate_multiple_graphs(session_results_table, session_folder)
     # TODO add limit lines for class A/B
