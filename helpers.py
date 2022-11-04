@@ -90,7 +90,7 @@ def generate_multiple_graphs(session_results_table, session_folder):
                 df.at[row,'Max(Ver,Hor)'] = max(df.at[row,'Hor'], df.at[row,'Ver'])
                 df.at[row,'Frequency[MHz]'] = df.at[row,'Frequency[MHz]']/1000000
             # create xy chart using plotly library
-            graph_name = str(index) + "." + result["model"] + " " + result["layout"] + " " + result["comment"] + " " + result["mode"] + " " + ("CL" if result["is_cl"]==1 else "OL") + " Vin=" + str(result["v_in"]) + "[V]" + " Iout=" + str(result["i_load"]) + "[A]" + " DC=" + str(result["dc"]) + " P=" + str(result["power"]) + "[W]"
+            graph_name = str(index) + "." + result["model"] + " " + ("Potted" if result["is_potted"] else "Not_Potted") + " " + result["layout"] + " " + result["comment"] + " " + result["mode"] + " " + ("CL" if result["is_cl"]==1 else "OL") + " Vin=" + str(result["v_in"]) + "[V]" + " Iout=" + str(result["i_load"]) + "[A]" + " DC=" + str(result["dc"]) + " P=" + str(result["power"]) + "[W]"
             fig.add_trace(go.Scatter(x=df["Frequency[MHz]"], y=df["Max(Ver,Hor)"], name=graph_name, mode="lines", visible='legendonly'))    
             #fig.add_trace(go.line(df, x='Frequency[MHz]', y='Max(Ver,Hor)', log_x=True, template="plotly_white"))
     # Change x-axis to log scale

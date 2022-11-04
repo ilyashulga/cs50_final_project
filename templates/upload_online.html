@@ -22,18 +22,20 @@
                 <label for="model"></label>
                 <input autocomplete="off" autofocus class="form-control mx-auto w-auto" id="model" name="model" placeholder="Model" type="text" value={{ curr_wp["model"] }}>
                 <input autocomplete="off" autofocus class="form-control mx-auto w-auto" id="layout" name="layout" placeholder="Layout" type="text" not empty value={{ curr_wp["layout"] }}>
-                <input type="radio" id="ol" name="cl_ol" value="open_loop" onclick="send('ol', 'dc', 'mode', 'i_lim_ps')">
+                <input type="checkbox" id="potted" name="potted" value="potted" {{ "checked" if curr_wp["is_potted"]==1 }}>
+                <label for="potted"> Unit is potted</label><br>
+                <input type="radio" id="ol" name="cl_ol" value="open_loop" onclick="send('ol', 'dc', 'mode', 'i_lim_ps')" {{ "checked" if curr_wp["cl_ol"]=="open_loop" else True }} {{ "send('ol', 'dc', 'mode', 'i_lim_ps')" if curr_wp["cl_ol"]=="open_loop" else True }}>
                 <label for="ol">Open Loop</label><br>
-                <input type="radio" id="cl" checked="checked" name="cl_ol" value="close_loop" onclick="send('cl', 'dc', 'mode', 'i_lim_ps')">
+                <input type="radio" id="cl" name="cl_ol" value="close_loop" onclick="send('cl', 'dc', 'mode', 'i_lim_ps')" {{ "checked" if curr_wp["cl_ol"]=="close_loop" }} {{ "send('cl', 'dc', 'mode', 'i_lim_ps')" if curr_wp["cl_ol"]=="close_loop" }}>
                 <label for="cl">Closed Loop</label><br>
                 </label>
                 <input autocomplete="off" autofocus class="form-control mx-auto w-auto" id="v_ps" name="v_ps" placeholder="Vps (Volt)" type="number" min="10" max="130" step="any" value={{ curr_wp["v_ps"] }}>
-                <input autocomplete="off" autofocus class="form-control mx-auto w-auto" id="i_lim_ps" name="i_lim_ps" placeholder="I_lim_ps (A)" type="number" step="any" value={{ curr_wp["i_lim_ps"] }}>
+                <input autocomplete="off" autofocus class="form-control mx-auto w-auto" id="i_lim_ps" name="i_lim_ps" placeholder="I_lim_ps (A)" type="number" step="any" value={{ curr_wp["i_lim_ps"] }} {{ "disabled" if curr_wp["cl_ol"]=="open_loop" }}>
                 <input autocomplete="off" autofocus class="form-control mx-auto w-auto" id="r_load" name="r_load" placeholder="Load Resistor (Ohm)" type="number" step="any" value={{ curr_wp["r_load"] }}>
-                <input autocomplete="off" autofocus class="form-control mx-auto w-auto" id="dc" name="dc" placeholder="Duty Cycle (%)" type="number" disabled step="any" value={{ curr_wp["dc"] }}>
+                <input autocomplete="off" autofocus class="form-control mx-auto w-auto" id="dc" name="dc" placeholder="Duty Cycle (%)" type="number" {{ "disabled" if curr_wp["cl_ol"]=="close_loop" }} step="any" value={{ curr_wp["dc"] }}>
                 <br>
                 <label for="mode">Chose operating mode:</label>
-                    <select name="mode" id="mode" disabled value={{ curr_wp["mode"] }}>
+                    <select name="mode" id="mode" value={{ curr_wp["mode"] }} {{ "disabled" if curr_wp["cl_ol"]=="close_loop" }}>
                         <option value="Buck">Buck</option>
                         <option value="Boost">Boost</option>
                         <option value="Buck_Boost">Buck-Boost</option>
@@ -56,6 +58,7 @@
             <th>Timestamp</th>
             <th>Model</th>
             <th>Layout</th>
+            <th>Potted?</th>
             <th>Close/Open Loop</th>
             <th>Mode</th>
             <th>Duty Cycle</th>
@@ -77,6 +80,7 @@
             <td>{{ row['timestamp'] }}</td>
             <td>{{ row['model'] }}</td>
             <td>{{ row['layout'] }}</td>
+            <td>{{ "Potted" if row['is_potted']==1 else "Not Potted" }}</td>
             <td>{{ "Close Loop" if row['is_cl']==1 else "Open Loop" }}</td>
             <td>{{ row['mode'] }}</td>
             <td>{{ row['dc'] }}</td>

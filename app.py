@@ -100,8 +100,7 @@ def upload_online(reqPath):
     # Create an empty JSON graph object
     graph1JSON = []
 
-    # Create an empty dict for storing curr_wp data in user session file
-    #session["curr_wp"] = {}
+
 
     # Create a va   riable to store a last uploaded csv name (only rebuild when clicked on Upload_Online link)
     #last_graph = 0
@@ -133,6 +132,7 @@ def upload_online(reqPath):
         curr_wp = {
             "model": request.form.get("model"),
             "layout": request.form.get("layout"),
+            "is_potted": 1 if request.form.get("potted")=="potted" else 0,
             "cl_ol": request.form['cl_ol'],
             "v_ps": float(request.form.get("v_ps")),
             "i_lim_ps": 0,
@@ -227,14 +227,27 @@ def upload_online(reqPath):
             flash('No selected file')
             return redirect(request.url)
         if file and allowed_file(file.filename):
-            filename = secure_filename(file.filename)
-            filename = curr_wp["model"] + '_' + curr_wp["layout"] + '_WP_' + curr_wp["cl_ol"] + '_' + curr_wp["mode"] + '_Power_' + str(curr_wp["power_in"]) + '_' + curr_wp["user_comment"] + '.csv'
-            # Filname based on user input and calculated WP
+            filename_head = secure_filename(file.filename)
+            filename_head = curr_wp["model"] + '_' + ("Potted_" if curr_wp["is_potted"] else "Not_potted_") + curr_wp["layout"] + '_WP_' + curr_wp["cl_ol"] + '_' + curr_wp["mode"] + '_Power_' + str(curr_wp["power_in"]) + '_' + curr_wp["user_comment"]
+            filename_tail = '.csv'
+            filename = os.path.join('%s%s' % (filename_head, filename_tail))
+            # rename if necessary
+            count = 0
+            while os.path.exists(os.path.join(session_folder, filename)):
+                count += 1
+                filename = os.path.join('%s-%d%s' % (filename_head, count, filename_tail))
+            
+            
+            
             file.save(os.path.join(session_folder, filename))
+            
+            # Filname based on user input and calculated WP
+             
+            #file.save(os.path.join(session_folder, filename))
             flash("Result was successfully added")
-            db.execute("INSERT INTO graphs (session_id, model, layout, is_cl, v_in, v_out, i_in, i_load, dc, power, mode, comment, filename, timestamp) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", session_id,
+            db.execute("INSERT INTO graphs (session_id, model, layout, is_cl, v_in, v_out, i_in, i_load, dc, power, mode, comment, filename, timestamp, is_potted) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", session_id,
                      curr_wp["model"], curr_wp["layout"], 1 if curr_wp["cl_ol"] == "close_loop" else  0, curr_wp["v_in"], curr_wp["v_out"], curr_wp["i_in"], curr_wp["i_out"], curr_wp["dc"],
-                      curr_wp["power_in"], curr_wp["mode"], curr_wp["user_comment"], filename, datetime.datetime.now().strftime("%H:%M:%S_%d%m%Y"))
+                      curr_wp["power_in"], curr_wp["mode"], curr_wp["user_comment"], filename, datetime.datetime.now().strftime("%H:%M:%S_%d%m%Y"), curr_wp["is_potted"])
             return redirect(request.url)
         # Write all relevant data to graphs table in plotter.db
 
@@ -274,8 +287,7 @@ def upload_online(reqPath):
                 'relPath': os.path.relpath(x.path, session_folder).replace("\\", "/"),
                 }
     fileObjs = [fObjFromScan(x) for x in os.scandir(absPath)]
-    # TODO add delete file button
-    # TODO add is_final flag (or leave final flag assesible from DASH)
+    
     # get parent directory url
     parentFolderPath = os.path.relpath(Path(absPath).parents[0], session_folder).replace("\\", "/")
     
@@ -284,8 +296,10 @@ def upload_online(reqPath):
         session_results_table = db.execute("SELECT * FROM graphs WHERE session_id=?", session_id)
     except:
         session_results_table = {}
+    
+    # TODO add is_final flag (or leave final flag assesible from DASH)
     # TODO Consider plotting graphs only if button is pressed / V is marked on ALL/some graphs
-
+    # TODO Create sessions page with option to resume specific session or just plot the CSVs from that session
     # TODO add multiple files upload page - upload offline or similar
     
     # Generate JSON graph from current session files object
@@ -351,6 +365,9 @@ def login():
         # Remember which user has logged in
         session["user_id"] = rows[0]["id"]
         session["user_name"] = rows[0]["username"]
+        # Create an empty dict for storing curr_wp data in user session file
+        session["curr_wp"] = {}
+        
         try:
             session["id"] = db.execute("SELECT id FROM sessions WHERE is_open=1 AND user_id=?", session['user_id'])[0]['id']
         except:
@@ -525,3 +542,4 @@ def delete_item():
 
 if __name__ == '__main__':
     app.run(debug=True)
+    #app.run(host="0.0.0.0", debug=True)
