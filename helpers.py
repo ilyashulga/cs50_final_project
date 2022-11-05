@@ -63,7 +63,7 @@ def generate_multiple_graphs(session_results_table, session_folder):
     
     # Read Limits.csv content with pandas into dataframe and add to graphs figure
     try:
-        df = pd.read_csv(os.path.join(os.path.abspath(os.path.dirname(__file__)), "static", "limits.csv"))
+        df = pd.read_csv(os.path.join(os.path.abspath(os.path.dirname(__file__)), "static", "Limits.csv"))
     except:
         return apology("Error in reading limits.csv file", 400)
 
