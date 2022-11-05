@@ -16,4 +16,34 @@
         </div>
         <button class="btn btn-primary" type="submit">Open New Session</button>
     </form>
+    <br><br>
+    <h1>or resume previous session</h1>
+    <table class="table table-striped table-responsive">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>When Created</th>
+                <th>Session name</th>
+                <th>Description</th>
+                <th>Unique ID</th>
+                <th>Resume Session</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for index, row in enumerate(user_sessions_table) %}
+            
+                <td>{{ index }}</td>
+                <td>{{ row['timestamp'] }}</td>
+                <td>{{ row['name'] }}</td>
+                <td>{{ row['description'] }}</td>
+                <td>{{ row['id'] }}</td>
+                <td>
+                    <form action="/resume_session" method="post" value="{{ row['id'] }}">
+                        <button name="resume_session" value="{{ row['id'] }}" class="btn btn-primary" type="submit">Resume</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
 {% endblock %}

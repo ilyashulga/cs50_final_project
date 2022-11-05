@@ -19,8 +19,9 @@
         <br>
         <form method=post enctype=multipart/form-data action="/upload_online">
             <div class="mb-3">
-                <label for="model"></label>
+                <label for="model">Model (aka. S440)</label>
                 <input autocomplete="off" autofocus class="form-control mx-auto w-auto" id="model" name="model" placeholder="Model" type="text" value={{ curr_wp["model"] }}>
+                <label for="layout">Layout / AP Level</label>
                 <input autocomplete="off" autofocus class="form-control mx-auto w-auto" id="layout" name="layout" placeholder="Layout" type="text" not empty value={{ curr_wp["layout"] }}>
                 <input type="checkbox" id="potted" name="potted" value="potted" {{ "checked" if curr_wp["is_potted"]==1 }}>
                 <label for="potted"> Unit is potted</label><br>
@@ -29,24 +30,31 @@
                 <input type="radio" id="cl" name="cl_ol" value="close_loop" onclick="send('cl', 'dc', 'mode', 'i_lim_ps')" {{ "checked" if curr_wp["cl_ol"]=="close_loop" }} {{ "send('cl', 'dc', 'mode', 'i_lim_ps')" if curr_wp["cl_ol"]=="close_loop" }}>
                 <label for="cl">Closed Loop</label><br>
                 </label>
-                <input autocomplete="off" autofocus class="form-control mx-auto w-auto" id="v_ps" name="v_ps" placeholder="Vps (Volt)" type="number" min="10" max="130" step="any" value={{ curr_wp["v_ps"] }}>
-                <input autocomplete="off" autofocus class="form-control mx-auto w-auto" id="i_lim_ps" name="i_lim_ps" placeholder="I_lim_ps (A)" type="number" step="any" value={{ curr_wp["i_lim_ps"] }} {{ "disabled" if curr_wp["cl_ol"]=="open_loop" }}>
-                <input autocomplete="off" autofocus class="form-control mx-auto w-auto" id="r_load" name="r_load" placeholder="Load Resistor (Ohm)" type="number" step="any" value={{ curr_wp["r_load"] }}>
-                <input autocomplete="off" autofocus class="form-control mx-auto w-auto" id="dc" name="dc" placeholder="Duty Cycle (%)" type="number" {{ "disabled" if curr_wp["cl_ol"]=="close_loop" }} step="any" value={{ curr_wp["dc"] }}>
+                <label for="v_ps">Power Supply Voltage [V]</label>
+                <input autocomplete="off" autofocus class="form-control mx-auto w-auto" min=8 max=150 id="v_ps" name="v_ps" placeholder="Vps (Volt)" type="number" step="any" value={{ curr_wp["v_ps"] }}>
+                <label for="i_lim_ps">Power Supply Curr. Limit [A]</label>
+                <input autocomplete="off" autofocus class="form-control mx-auto w-auto" min=0.1 max=20 id="i_lim_ps" name="i_lim_ps" placeholder="I_lim_ps (A)" type="number" step="any" value={{ curr_wp["i_lim_ps"] }} {{ "disabled" if curr_wp["cl_ol"]=="open_loop" }}>
+                <label for="r_load">Load Resistor [Ohm]</label>
+                <input autocomplete="off" autofocus class="form-control mx-auto w-auto" min=0.1 max=200 id="r_load" name="r_load" placeholder="Load Resistor (Ohm)" type="number" step="any" value={{ curr_wp["r_load"] }}>
+                <label for="dc">Duty Cycle [0-1]</label>
+                <input autocomplete="off" autofocus class="form-control mx-auto w-auto" min=0.01 max=1 id="dc" name="dc" placeholder="Duty Cycle (%)" type="number" {{ "disabled" if curr_wp["cl_ol"]=="close_loop" }} step="any" value={{ curr_wp["dc"] }} >
                 <br>
                 <label for="mode">Chose operating mode:</label>
                     <select name="mode" id="mode" value={{ curr_wp["mode"] }} {{ "disabled" if curr_wp["cl_ol"]=="close_loop" }}>
                         <option value="Buck">Buck</option>
                         <option value="Boost">Boost</option>
-                        <option value="Buck_Boost">Buck-Boost</option>
+                        <!-- <option value="Buck_Boost">Buck-Boost</option>
                         <option value="Do_Nothing">Do Nothing</option>
-                        <option value="Safety">Safety</option>
+                        <option value="Safety">Safety</option> -->
                     </select>
             </div>
-            <input autocomplete="off" autofocus class="form-control mx-auto w-auto" id="comment" name="comment" placeholder="Comment..." type="text" value={{ curr_wp["user_comment"] }}>
+            <input autocomplete="off" autofocus class="form-control mx-auto w-auto" id="comment" name="comment" placeholder="Comment..." type="text" value="{{ curr_wp["user_comment"] }}">
             <br>
-            <input type=file name=file>
-            <input type=submit value=Upload>
+            <input type=file name=file><br><br>
+            <input type=submit value="Add Trace">
+            <br>
+            <!--<input type="text" minlength="7" maxlength="15" size="15" pattern="^((\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.){3}(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])$" id="inst_address" name="inst_address" disabled>
+            -->
         </form>
     </div>
 </div>
@@ -75,7 +83,7 @@
     </thead>
     <tbody>
         {% for index, row in enumerate(session_results_table) %}
-        <tr>
+        
             <td>{{ index }}</td>
             <td>{{ row['timestamp'] }}</td>
             <td>{{ row['model'] }}</td>

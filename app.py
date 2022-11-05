@@ -18,6 +18,7 @@ import plotly.express as px
 import datetime
 import os
 import pyvisa
+import requests
 
 
 from helpers import apology, login_required, generate_graph, getIconClassForFilename, generate_multiple_graphs, open_connection, close_connection
@@ -93,7 +94,7 @@ def upload_online(reqPath):
     try:
         session_is_open = db.execute("SELECT is_open FROM sessions WHERE is_open=1 AND user_id=?", session["user_id"])[0]["is_open"]
     except:
-        return render_template("new_session.html")
+        return render_template("new_session.html", user_sessions_table=db.execute("SELECT * FROM sessions WHERE user_id=?", session["user_id"]), enumerate=enumerate)
     
     session_folder = db.execute("SELECT folder FROM sessions WHERE user_id=? AND is_open=1", session["user_id"])[0]["folder"]
     session_id = db.execute("SELECT id FROM sessions WHERE user_id=? and is_open=1", session["user_id"])[0]["id"]
@@ -111,7 +112,7 @@ def upload_online(reqPath):
         if not request.form.get("model"):
             flash('Must specify Model')
             return redirect(request.url)
-        
+
         # Ensure model was submitted
         if not request.form.get("layout"):
             flash('Must specify layout')
@@ -214,8 +215,25 @@ def upload_online(reqPath):
 
         # Store all user input form data in user session param (to be used after as a starting point when page is refreshed)
         session["curr_wp"] = curr_wp
-        
 
+        """ SECTION without get data from spectrum    
+        # check if the post request has the file part
+        session['inst_address'] = request.form.get('inst_address')
+        print(session['inst_address'])
+        if 'file' not in request.files:
+            flash('Getting .csv from spectrum')
+            response = requests.post('http://' + session['inst_address'] + '/TransferData/GetTrace', data = 'All Traces')
+            file = response.content
+            print(file)
+        else:
+            file = request.files['file']
+        # If the user does not select a file, the browser submits an
+        # empty file without a filename.
+        if file.filename == '':
+            flash('No selected file')
+            return redirect(request.url)
+        """
+        
         # check if the post request has the file part
         if 'file' not in request.files:
             flash('No file part')
@@ -226,6 +244,7 @@ def upload_online(reqPath):
         if file.filename == '':
             flash('No selected file')
             return redirect(request.url)
+        
         if file and allowed_file(file.filename):
             filename_head = secure_filename(file.filename)
             filename_head = curr_wp["model"] + '_' + ("Potted_" if curr_wp["is_potted"] else "Not_potted_") + curr_wp["layout"] + '_WP_' + curr_wp["cl_ol"] + '_' + curr_wp["mode"] + '_Power_' + str(curr_wp["power_in"]) + '_' + curr_wp["user_comment"]
@@ -448,6 +467,24 @@ def new_session():
             apology("Can't save session id", 400)
         return redirect("/upload_online")
 
+@app.route("/resume_session", methods=["GET", "POST"])
+@login_required
+def resume_session():
+    if request.method == "POST":
+        
+        try:
+            db.execute("UPDATE sessions SET is_open = 1 WHERE id=?", request.form.get("resume_session"))
+        except:
+            apology("Can't resume session", 400)
+        
+        session["session"] = db.execute("SELECT name FROM sessions WHERE user_id=? AND is_open=1", session["user_id"])[0]['name']
+        
+        try:
+            session["id"] = db.execute("SELECT id FROM sessions WHERE is_open=1 AND user_id=?", session['user_id'])[0]['id']
+        except:
+            apology("Can't resume session", 400)
+        return redirect("/upload_online")
+
 @app.route("/close_session", methods=["GET", "POST"])
 @login_required
 def close_session():
@@ -541,5 +578,6 @@ def delete_item():
 
 
 if __name__ == '__main__':
+    #app.run(host="0.0.0.0")
     app.run(debug=True)
     #app.run(host="0.0.0.0", debug=True)

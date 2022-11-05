@@ -103,9 +103,9 @@ def generate_multiple_graphs(session_results_table, session_folder):
                         title_standoff = 5)
     fig.update_layout(#autosize=False,
                         minreducedwidth=250,
-                        minreducedheight=1500,
+                        minreducedheight=500,
                         #width=1500,
-                        #height=1000,
+                        height=700,
                         legend=dict(
                             #yanchor="top",
                             y=-0.3,
