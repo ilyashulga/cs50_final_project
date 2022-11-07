@@ -1,22 +1,13 @@
-import subprocess
 import requests
 
-for ping in range(1,255):
-    address = "10.77.10." + str(ping)
-    file=0
-    try:
-        response = requests.post('http://' + address + '/TransferData/GetTrace', data = 'All Traces')
-        file = response.content
-    except:
-         print("not reachable")
-    print(str(ping)
-    if file:
-        print(str(ping))
-        print(file)
-    #res = subprocess.call(['ping', '-c', '1', address])
-    #if res == 0:
-        #print ("ping to", address, "OK")
-    #elif res == 2:
-        #print ("no response from", address)
-    #else:
-        #print ("ping to", address, "failed!")
+#for ping in range(1,255):
+address = "http://10.77.10.65/TransferData/GetTrace/" #+ str(ping)
+
+# Send HTTP GET request to server and attempt to receive a response
+data = {'submit': 'All Traces'}
+response = requests.post(url=address, data=data)
+
+# If the HTTP GET request can be served
+if response.status_code == 200:
+    file = open("All_Traces.csv", 'w')
+    file.write(response.text)
