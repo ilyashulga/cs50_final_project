@@ -222,7 +222,7 @@ def upload_online(reqPath):
         # check if instrument IP is provided
         #session['inst_address'] = request.form.get('inst_address')
         file = request.files['file']
-        
+
         if not curr_wp['inst_address'] and 'file' not in request.files:
             flash('Please chose file or provide instrument IP address')
             return redirect(request.url)
@@ -610,4 +610,5 @@ def delete_item():
 if __name__ == '__main__':
     #app.run(host="0.0.0.0")
     app.run(port= 5001, debug=True)
+    
     #app.run(host="0.0.0.0", debug=True)
