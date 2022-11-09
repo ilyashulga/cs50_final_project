@@ -151,7 +151,8 @@ def upload_online(reqPath):
             "eff": 0.98,
             "user_comment": request.form.get("comment"),
             "filename": "none",
-            "is_final": False  # true will mean graph will be visible via dash viewing application
+            "is_final": False,  # true will mean graph will be visible via dash viewing application
+            "inst_address": request.form.get("inst_address")
             }
 
         # Check inputs specific for close_loop:
@@ -219,13 +220,23 @@ def upload_online(reqPath):
 
           
         # check if instrument IP is provided
-        session['inst_address'] = request.form.get('inst_address')
-        print(session['inst_address'])
-        if not session['inst_address'] and 'file' not in request.files:
+        #session['inst_address'] = request.form.get('inst_address')
+        file = request.files['file']
+        
+        if not curr_wp['inst_address'] and 'file' not in request.files:
             flash('Please chose file or provide instrument IP address')
             return redirect(request.url)
-        elif 'file' not in request.files and session['inst_address']:
+        elif 'file' in request.files and file.filename != '':
+            file = request.files['file']
+            if file.filename == '':
+                flash('No selected file')
+                return redirect(request.url)
+        elif curr_wp['inst_address']:
             #flash('Getting .csv from spectrum')
+            csv_data = get_csv_from_spectrum(curr_wp['inst_address'])
+            if csv_data == "Can't reach instrument":
+                flash('Instrument not reachable at specified address')
+                return redirect(request.url)
             filename_head = curr_wp["model"] + '_' + ("Potted_" if curr_wp["is_potted"] else "Not_potted_") + curr_wp["layout"] + '_WP_' + curr_wp["cl_ol"] + '_' + curr_wp["mode"] + '_Power_' + str(curr_wp["power_in"]) + '_' + curr_wp["user_comment"]
             filename_tail = '.csv'
             filename = os.path.join('%s%s' % (filename_head, filename_tail))
@@ -236,7 +247,7 @@ def upload_online(reqPath):
                 count += 1
                 filename = os.path.join('%s-%d%s' % (filename_head, count, filename_tail))
             file = open(os.path.join(session_folder, filename), 'w')
-            file.write(get_csv_from_spectrum(session['inst_address']))
+            file.write(csv_data)
 
             flash("Result was successfully added")
             db.execute("INSERT INTO graphs (session_id, model, layout, is_cl, v_in, v_out, i_in, i_load, dc, power, mode, comment, filename, timestamp, is_potted) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", session_id,
@@ -245,12 +256,14 @@ def upload_online(reqPath):
             return redirect(request.url)
             #print(file)
         else:
-            file = request.files['file']
+            #file = request.files['file']
+            if file.filename == '':
+                flash('No selected file')
+                return redirect(request.url)
+        
         # If the user does not select a file, the browser submits an
         # empty file without a filename.
-        if file.filename == '':
-            flash('No selected file')
-            return redirect(request.url)
+
         
         """ SECTION without get data from spectrum  
         # check if the post request has the file part
@@ -596,5 +609,5 @@ def delete_item():
 
 if __name__ == '__main__':
     #app.run(host="0.0.0.0")
-    app.run(debug=True)
+    app.run(port= 5001, debug=True)
     #app.run(host="0.0.0.0", debug=True)

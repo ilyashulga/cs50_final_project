@@ -147,16 +147,19 @@ def close_connection(rm, inst):
 
 def get_csv_from_spectrum(inst_ip):
     #for ping in range(1,255):
-    address = "http://" + inst_ip + "/TransferData/GetTrace/"
+    address = inst_ip + "TransferData/GetTrace/"
 
     # Send HTTP GET request to server and attempt to receive a response with CSV file
     data = {'submit': 'All Traces'}
-    response = requests.post(url=address, data=data)
+    try:
+        response = requests.post(url=address, data=data)
+    except:
+        return "Can't reach instrument"
 
     # If the HTTP GET request can be served
     if response.status_code == 200:
         return response.text
     else:
         error = "http error:" + str(response.status_code)
-        return error
+        return "Can't reach instrument"
 
