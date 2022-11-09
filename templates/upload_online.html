@@ -51,10 +51,12 @@
             <input autocomplete="off" autofocus class="form-control mx-auto w-auto" id="comment" name="comment" placeholder="Comment..." type="text" value="{{ curr_wp["user_comment"] }}">
             <br>
             <input type=file name=file><br><br>
-            <input type=submit value="Add Trace">
+            
+            <label for="inst_address">Spectrum IP Address</label>
+            <input type="text" minlength="7" maxlength="15" size="15" pattern="^((\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.){3}(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])$" id="inst_address" name="inst_address">
             <br>
-            <!--<input type="text" minlength="7" maxlength="15" size="15" pattern="^((\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.){3}(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])$" id="inst_address" name="inst_address" disabled>
-            -->
+            <br>
+            <input type=submit value="Add Trace">
         </form>
     </div>
 </div>

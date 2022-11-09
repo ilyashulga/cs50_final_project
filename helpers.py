@@ -1,5 +1,4 @@
 import os
-import requests
 import urllib.parse
 
 from flask import redirect, render_template, request, session
@@ -11,6 +10,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 from pathlib import Path
 import pyvisa
+import requests
 
 
 def apology(message, code=400):
@@ -144,4 +144,19 @@ def close_connection(rm, inst):
     rm.close()
     inst.close()
 
+
+def get_csv_from_spectrum(inst_ip):
+    #for ping in range(1,255):
+    address = "http://" + inst_ip + "/TransferData/GetTrace/"
+
+    # Send HTTP GET request to server and attempt to receive a response with CSV file
+    data = {'submit': 'All Traces'}
+    response = requests.post(url=address, data=data)
+
+    # If the HTTP GET request can be served
+    if response.status_code == 200:
+        return response.text
+    else:
+        error = "http error:" + str(response.status_code)
+        return error
 

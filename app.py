@@ -21,7 +21,7 @@ import pyvisa
 import requests
 
 
-from helpers import apology, login_required, generate_graph, getIconClassForFilename, generate_multiple_graphs, open_connection, close_connection
+from helpers import apology, login_required, generate_graph, getIconClassForFilename, generate_multiple_graphs, open_connection, close_connection, get_csv_from_spectrum
 
 # Configure Spectrum Analyzer Keysight
 # Alter this host name, or IP address, in the line below to accommodate your specific instrument
@@ -97,6 +97,7 @@ def upload_online(reqPath):
         return render_template("new_session.html", user_sessions_table=db.execute("SELECT * FROM sessions WHERE user_id=?", session["user_id"]), enumerate=enumerate)
     
     session_folder = db.execute("SELECT folder FROM sessions WHERE user_id=? AND is_open=1", session["user_id"])[0]["folder"]
+    # TODO Check possible bug when if the database is transferred to another server or folder - will session_folder be accessible? Need to make sure what is stored in database is relative to the app.py folder and not absolute pass
     session_id = db.execute("SELECT id FROM sessions WHERE user_id=? and is_open=1", session["user_id"])[0]["id"]
     # Create an empty JSON graph object
     graph1JSON = []
@@ -216,15 +217,33 @@ def upload_online(reqPath):
         # Store all user input form data in user session param (to be used after as a starting point when page is refreshed)
         session["curr_wp"] = curr_wp
 
-        """ SECTION without get data from spectrum    
-        # check if the post request has the file part
+          
+        # check if instrument IP is provided
         session['inst_address'] = request.form.get('inst_address')
         print(session['inst_address'])
-        if 'file' not in request.files:
-            flash('Getting .csv from spectrum')
-            response = requests.post('http://' + session['inst_address'] + '/TransferData/GetTrace', data = 'All Traces')
-            file = response.content
-            print(file)
+        if not session['inst_address'] and 'file' not in request.files:
+            flash('Please chose file or provide instrument IP address')
+            return redirect(request.url)
+        elif 'file' not in request.files and session['inst_address']:
+            #flash('Getting .csv from spectrum')
+            filename_head = curr_wp["model"] + '_' + ("Potted_" if curr_wp["is_potted"] else "Not_potted_") + curr_wp["layout"] + '_WP_' + curr_wp["cl_ol"] + '_' + curr_wp["mode"] + '_Power_' + str(curr_wp["power_in"]) + '_' + curr_wp["user_comment"]
+            filename_tail = '.csv'
+            filename = os.path.join('%s%s' % (filename_head, filename_tail))
+            
+            # rename if filename already exists
+            count = 0
+            while os.path.exists(os.path.join(session_folder, filename)):
+                count += 1
+                filename = os.path.join('%s-%d%s' % (filename_head, count, filename_tail))
+            file = open(os.path.join(session_folder, filename), 'w')
+            file.write(get_csv_from_spectrum(session['inst_address']))
+
+            flash("Result was successfully added")
+            db.execute("INSERT INTO graphs (session_id, model, layout, is_cl, v_in, v_out, i_in, i_load, dc, power, mode, comment, filename, timestamp, is_potted) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", session_id,
+                     curr_wp["model"], curr_wp["layout"], 1 if curr_wp["cl_ol"] == "close_loop" else  0, curr_wp["v_in"], curr_wp["v_out"], curr_wp["i_in"], curr_wp["i_out"], curr_wp["dc"],
+                      curr_wp["power_in"], curr_wp["mode"], curr_wp["user_comment"], filename, datetime.datetime.now().strftime("%H:%M:%S_%d%m%Y"), curr_wp["is_potted"])
+            return redirect(request.url)
+            #print(file)
         else:
             file = request.files['file']
         # If the user does not select a file, the browser submits an
@@ -232,8 +251,8 @@ def upload_online(reqPath):
         if file.filename == '':
             flash('No selected file')
             return redirect(request.url)
-        """
         
+        """ SECTION without get data from spectrum  
         # check if the post request has the file part
         if 'file' not in request.files:
             flash('No file part')
@@ -244,20 +263,18 @@ def upload_online(reqPath):
         if file.filename == '':
             flash('No selected file')
             return redirect(request.url)
-        
+        """
         if file and allowed_file(file.filename):
             filename_head = secure_filename(file.filename)
             filename_head = curr_wp["model"] + '_' + ("Potted_" if curr_wp["is_potted"] else "Not_potted_") + curr_wp["layout"] + '_WP_' + curr_wp["cl_ol"] + '_' + curr_wp["mode"] + '_Power_' + str(curr_wp["power_in"]) + '_' + curr_wp["user_comment"]
             filename_tail = '.csv'
             filename = os.path.join('%s%s' % (filename_head, filename_tail))
-            # rename if necessary
+            # rename if filename already exists
             count = 0
             while os.path.exists(os.path.join(session_folder, filename)):
                 count += 1
                 filename = os.path.join('%s-%d%s' % (filename_head, count, filename_tail))
-            
-            
-            
+
             file.save(os.path.join(session_folder, filename))
             
             # Filname based on user input and calculated WP
