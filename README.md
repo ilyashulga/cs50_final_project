@@ -3,7 +3,7 @@
 #### Description:
 This Web-based APP is designed to help hardware engineers to manage and evaluate EMC Testing results for their products. 
 
-###### Current version supports the following features:
+#### Current version supports the following features:
 1. Authentication (Login + Registration of new users)
 2. Each registered user gets access to his own "space" on server where he/she can upload testing results (csv raw data from spectrum analyzer) - users_data/username/
 3. This csv raw data can be uploaded from local computer or directly pulled from spectrum analyzer (Keysight) via HTTP Post request - need to provide instrument http address in corresponting field
@@ -16,14 +16,16 @@ This Web-based APP is designed to help hardware engineers to manage and evaluate
 9. All original raw data is stored (without modifications)
 
 
-##### Required RAW Data format:
+#### Required RAW Data format:
 1. RAW DATA .csv file downloaded from EMI Receiver (Keysight N9038A MXE or similar model)
 2. Trace 2 should be MaxHold of Vertical Antenna Polarization Measurement (table full 360 deg rotation)
 3. Trace 3 should be MaxHold of Horizontal Antenna Polarization Measurement (table full 360 deg rotation)
 4. The plotted graphs magnitude are Max(Vertical, Horizontal) - this simplifies comparison of different results
 
+#### Dataset examples (to play with the app)
+ - Please check out raw data csv files examples in "Dataset_examples" folder that can be used as a data for evaluating the app performance without taking actual measurements
 
-##### Code Details:
+#### Code Details:
 Python Packages used:
 1. cs50 - SQL Database interation
 2. python3-Flask - Web-Based app skeleton
@@ -47,7 +49,7 @@ App.py:
 helpers.py:
     Functions that was desided to keep in separate file for cleaner look
 
-##### SQL Database Structure:
+#### SQL Database Structure:
 1. Users table:
 
     | id (unique) | username | hash | type |
