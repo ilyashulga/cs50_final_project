@@ -1,5 +1,5 @@
 # EMC Plotter DB v.0.1 ALPHA
-#### Video Demo:  [<URL HERE>](https://youtu.be/by_l7aCjBEA)
+#### Video Demo: https://youtu.be/by_l7aCjBEA
 #### Description:
 This Web-based APP is designed to help hardware engineers to manage and evaluate EMC Testing results for their products. 
 
