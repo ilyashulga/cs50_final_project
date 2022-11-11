@@ -145,9 +145,6 @@ def upload_online(reqPath):
             curr_wp["i_in"] = curr_wp["i_lim_ps"] - curr_wp["v_in"] / ( curr_wp["sas_par"] + curr_wp["sas_ser"] )
             
             # Determine operational mode
-            print(curr_wp["v_out"])
-            print(curr_wp["v_in"])
-            print(curr_wp["v_out"] / curr_wp["v_in"])
             if curr_wp["v_out"] / curr_wp["v_in"] > 1.02:
                 curr_wp["dc"] = (curr_wp["v_out"] - curr_wp["v_in"]) / curr_wp["v_out"]
                 curr_wp["mode"] = "Boost"
