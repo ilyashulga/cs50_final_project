@@ -1,2 +1,4 @@
-# cs50_final_project
-This repository is for my final CS50 project
+# EMC Plotter DB
+#### Video Demo:  [<URL HERE>](https://youtu.be/by_l7aCjBEA)
+#### Description:
+TODO
