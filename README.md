@@ -25,21 +25,21 @@ This Web-based APP is designed to help hardware engineers to manage and evaluate
 
 ##### Code Details:
 Python Packages used:
-    cs50 - SQL Database interation
-    python3-Flask - Web-Based app skeleton
-    Flask-Session - Storing user session data (mainly the session id, user form data entries, last working point info)
-    requests - Pulling data directly from Keysight EMI Recveiver (using HPPT POST Request)
-    plotly - Plotting and comparing session graphs
-    pandas - Reading raw data cvs content and manipulation
-    datetime - Time stamps
-    pathlib - safely storing user data on disk and enable cross-platform desing
-    json - convert plotly graph object to JSON forman (for HTML Embedding)
+1. cs50 - SQL Database interation
+2. python3-Flask - Web-Based app skeleton
+3. Flask-Session - Storing user session data (mainly the session id, user form data entries, last working point info)
+4. requests - Pulling data directly from Keysight EMI Recveiver (using HPPT POST Request)
+5. plotly - Plotting and comparing session graphs
+6. pandas - Reading raw data cvs content and manipulation
+7. datetime - Time stamps
+8. pathlib - safely storing user data on disk and enable cross-platform desing
+9. json - convert plotly graph object to JSON forman (for HTML Embedding)
 
 Other languages:
-    Javascript - html form manimulation and other front end stuff
-    HTML with some CSS styling
-    JINJA - pass data from python to html
-    SQL - storage of users and user data
+1. Javascript - html form manimulation and other front end stuff
+2. HTML with some CSS styling
+3. JINJA - pass data from python to html
+4. SQL - storage of users and user data
 
 App.py:
     All backend code is concentrated here. 
