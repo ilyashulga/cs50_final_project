@@ -1,8 +1,6 @@
 #!/usr/bin/python3
 
-#from asyncio.windows_events import NULL
 import os
-
 from cs50 import SQL
 from flask import Flask, flash, redirect, render_template, request, session, url_for, safe_join, send_file, abort
 from pathlib import Path
@@ -16,13 +14,13 @@ import pandas as pd
 import plotly
 import plotly.express as px
 import datetime
-import os
-import pyvisa
+# import pyvisa
 import requests
 
 
 from helpers import apology, login_required, generate_graph, getIconClassForFilename, generate_multiple_graphs, open_connection, close_connection, get_csv_from_spectrum
 
+""" OPTION: connect to spectrum via VISA
 # Configure Spectrum Analyzer Keysight
 # Alter this host name, or IP address, in the line below to accommodate your specific instrument
 host = 'k-n5245b-81275' # Or you could utilize an IP address.
@@ -32,6 +30,7 @@ host = 'k-n5245b-81275' # Or you could utilize an IP address.
 # Agilent Technologies, LAN based RF instrumentation socket ports use 5025. 
 # Refer to your specific instrument User Guide for additional details.
 port = 5025
+"""
 
 # Configure File uploads
 UPLOAD_FOLDER = 'users_data/'
@@ -66,21 +65,7 @@ def after_request(response):
 @app.route("/")
 @login_required
 def index():
-    """Below will be the main page"""
-    
-    # Read csv content with pandas into dataframe starting from line 18 (otherwise pandas can't read properly the data)
-    
-    #df = pd.read_csv('All_Traces.csv', skiprows=18)
-    
-    # Change column names in dataframe to more intuitive
-    #df.columns = ['Frequency[MHz]','Max(Ver,Hor)', 'Ver', 'Hor']
-    #print(df.columns)
-    #print(df.head)
-    
-    # Generate JSON graph from dataframe
-    #graph1JSON = generate_graph(df)
-
-    #return apology("Main Page will be here)", 200)
+    """This is main page with EMC Lab picture and program version"""
     return render_template("index.html", graph1JSON=1)
 
 @app.route("/upload_online", methods=["GET", "POST"], defaults={'reqPath': ''})
@@ -88,27 +73,18 @@ def index():
 @login_required
 def upload_online(reqPath):
     """GUI for adding plots one-by-one"""
-    #db.execute("UPDATE sessions SET is_open = 0 WHERE id = 11")
-    
     # Check if there is any unclosed test session for current user, if none - render a new session page
     try:
         session_is_open = db.execute("SELECT is_open FROM sessions WHERE is_open=1 AND user_id=?", session["user_id"])[0]["is_open"]
     except:
         return render_template("new_session.html", user_sessions_table=db.execute("SELECT * FROM sessions WHERE user_id=?", session["user_id"]), enumerate=enumerate)
-    
     session_folder = db.execute("SELECT folder FROM sessions WHERE user_id=? AND is_open=1", session["user_id"])[0]["folder"]
     # TODO Check possible bug when if the database is transferred to another server or folder - will session_folder be accessible? Need to make sure what is stored in database is relative to the app.py folder and not absolute pass
     session_id = db.execute("SELECT id FROM sessions WHERE user_id=? and is_open=1", session["user_id"])[0]["id"]
     # Create an empty JSON graph object
     graph1JSON = []
 
-
-
-    # Create a va   riable to store a last uploaded csv name (only rebuild when clicked on Upload_Online link)
-    #last_graph = 0
-
     if request.method == 'POST':
-        
         # Ensure model was submitted
         if not request.form.get("model"):
             flash('Must specify Model')
@@ -124,8 +100,7 @@ def upload_online(reqPath):
             flash('Must specify power supply voltage (Vps)')
             return redirect(request.url)
         
-
-
+        # Check load resistor value was submitted
         if not request.form.get("r_load"):
             flash('Must specify load resistor')
             return redirect(request.url)    
@@ -218,19 +193,20 @@ def upload_online(reqPath):
         # Store all user input form data in user session param (to be used after as a starting point when page is refreshed)
         session["curr_wp"] = curr_wp
 
-          
-        # check if instrument IP is provided
-        #session['inst_address'] = request.form.get('inst_address')
         file = request.files['file']
 
+        # Check if csv file selected and whether instrument http address is specified
         if not curr_wp['inst_address'] and 'file' not in request.files:
             flash('Please chose file or provide instrument IP address')
             return redirect(request.url)
+        
+        # If file is selected - use file upload as a raw data source
         elif 'file' in request.files and file.filename != '':
             file = request.files['file']
             if file.filename == '':
                 flash('No selected file')
                 return redirect(request.url)
+        # If no file was selected by user - try to download csv directly from spectrum analyzer
         elif curr_wp['inst_address']:
             #flash('Getting .csv from spectrum')
             csv_data = get_csv_from_spectrum(curr_wp['inst_address'])
@@ -248,23 +224,18 @@ def upload_online(reqPath):
                 filename = os.path.join('%s-%d%s' % (filename_head, count, filename_tail))
             file = open(os.path.join(session_folder, filename), 'w')
             file.write(csv_data)
-
             flash("Result was successfully added")
+            # Store working point details and file location in SQL Database
             db.execute("INSERT INTO graphs (session_id, model, layout, is_cl, v_in, v_out, i_in, i_load, dc, power, mode, comment, filename, timestamp, is_potted) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", session_id,
                      curr_wp["model"], curr_wp["layout"], 1 if curr_wp["cl_ol"] == "close_loop" else  0, curr_wp["v_in"], curr_wp["v_out"], curr_wp["i_in"], curr_wp["i_out"], curr_wp["dc"],
                       curr_wp["power_in"], curr_wp["mode"], curr_wp["user_comment"], filename, datetime.datetime.now().strftime("%H:%M:%S_%d%m%Y"), curr_wp["is_potted"])
             return redirect(request.url)
-            #print(file)
         else:
-            #file = request.files['file']
             if file.filename == '':
                 flash('No selected file')
                 return redirect(request.url)
-        
         # If the user does not select a file, the browser submits an
         # empty file without a filename.
-
-        
         """ SECTION without get data from spectrum  
         # check if the post request has the file part
         if 'file' not in request.files:
@@ -287,34 +258,13 @@ def upload_online(reqPath):
             while os.path.exists(os.path.join(session_folder, filename)):
                 count += 1
                 filename = os.path.join('%s-%d%s' % (filename_head, count, filename_tail))
-
             file.save(os.path.join(session_folder, filename))
-            
-            # Filname based on user input and calculated WP
-             
-            #file.save(os.path.join(session_folder, filename))
             flash("Result was successfully added")
+            # Store working point details and file location in SQL Database
             db.execute("INSERT INTO graphs (session_id, model, layout, is_cl, v_in, v_out, i_in, i_load, dc, power, mode, comment, filename, timestamp, is_potted) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", session_id,
                      curr_wp["model"], curr_wp["layout"], 1 if curr_wp["cl_ol"] == "close_loop" else  0, curr_wp["v_in"], curr_wp["v_out"], curr_wp["i_in"], curr_wp["i_out"], curr_wp["dc"],
                       curr_wp["power_in"], curr_wp["mode"], curr_wp["user_comment"], filename, datetime.datetime.now().strftime("%H:%M:%S_%d%m%Y"), curr_wp["is_potted"])
             return redirect(request.url)
-        # Write all relevant data to graphs table in plotter.db
-
-
-        """
-        # Read csv content with pandas into dataframe starting from row 18 (otherwise pandas can't read properly the data)
-        try:
-            df = pd.read_csv(os.path.join(session_folder, filename), skiprows=18)
-        except:
-            return render_template("upload_online.html")
-        
-        # Change column names in dataframe to more intuitive
-        df.columns = ['Frequency[MHz]','Max(Ver,Hor)', 'Ver', 'Hor']
-        
-        # Generate JSON graph from dataframe
-        graph1JSON = generate_graph(df, request.form.get("graph_title"))
-        """
-    
     # Join the base and the requested path
     # could have done os.path.join, but safe_join ensures that files are not fetched from parent folders of the base folder
     absPath = safe_join(session_folder, reqPath)
@@ -353,14 +303,13 @@ def upload_online(reqPath):
     
     # Generate JSON graph from current session files object
     graph1JSON = generate_multiple_graphs(session_results_table, session_folder)
-    # TODO add limit lines for class A/B
     return render_template("upload_online.html", graph1JSON=graph1JSON, data={'files': fileObjs,
                                                  'parentFolder': parentFolderPath}, curr_wp=session["curr_wp"], session_results_table=session_results_table, enumerate=enumerate)
 
 @app.route("/graphs_compare", methods=["GET", "POST"])
 @login_required
 def graphs_compare():
-    """GUI for comparing plots"""
+    """GUI for comparing plots
     # Display a list of uploaded user files and folder structure, select with checkboxes what graphs to compare and press compare
     #if request.method == 'POST':
     session_folders = db.execute("SELECT folder FROM sessions WHERE user_id=? AND NOT folder='' AND NOT folder='tmp'", session["user_id"])
@@ -369,7 +318,7 @@ def graphs_compare():
     
     return render_template("graphs_compare.html")
     #print(session_folders)
-    """
+    
     # Read csv content with pandas into dataframe starting from row 18 (otherwise pandas can't read properly the data)
     try:
         df = pd.read_csv(os.path.join(session_folder, filename), skiprows=18)
@@ -467,7 +416,6 @@ def register():
             password = request.form.get("password")
             password_hash = generate_password_hash(password)
             account_type = "user"
-            #db.execute("INSERT INTO users (username,hash,type) VALUES(?, ?, ?)", username, password_hash, account_type)
             try:
                 db.execute("INSERT INTO users (username,hash,type) VALUES(?, ?, ?)", username, password_hash, account_type)
             except:
@@ -484,7 +432,6 @@ def new_session():
     if request.method == "POST":
         session_name = request.form.get("session_name")
         session_desc = request.form.get("session_description")
-
         try:
             db.execute("INSERT INTO sessions (name, description, user_id, timestamp, is_open, folder) VALUES(?, ?, ?, DATETIME('now','localtime'), 1, 'tmp')", session_name, session_desc, session["user_id"])
         except:
@@ -501,7 +448,6 @@ def new_session():
 @login_required
 def resume_session():
     if request.method == "POST":
-        
         try:
             db.execute("UPDATE sessions SET is_open = 1 WHERE id=?", request.form.get("resume_session"))
         except:
@@ -594,16 +540,10 @@ def getFiles(reqPath):
 @login_required
 def delete_item():
     if request.method == "POST":
-        #print(session["id"])
-        #print(request.form.get("delete"))
         session_folder = db.execute("SELECT folder FROM sessions WHERE id=?", session["id"])[0]['folder']
         file_name = db.execute("SELECT filename FROM graphs WHERE id=?", request.form.get("delete"))[0]['filename']
         os.remove(os.path.join(session_folder, file_name))
         db.execute("DELETE FROM graphs WHERE id=?", request.form.get("delete"))
-    #item = self.session.query(Item).get(item_id)
-    
-    #self.session.delete(item)
-    #db.session.commit()
     return redirect("/upload_online")
 
 
