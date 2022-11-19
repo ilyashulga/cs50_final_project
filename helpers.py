@@ -102,6 +102,10 @@ def generate_multiple_graphs(session_results_table, session_folder):
                         title_font = {"size": 20},
                         title_standoff = 5)
     fig.update_layout(#autosize=False,
+                        hoverdistance=-1,
+                        hoverlabel_namelength=-1, # Needed to not shorten the name of the trace on hoover (together with hoverinfo='text' in fig.add_trace(go.Scatter... above)
+                        hovermode="x unified",
+                        #hovermode="x",
                         minreducedwidth=250,
                         minreducedheight=500,
                         #width=1500,

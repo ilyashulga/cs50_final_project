@@ -305,35 +305,6 @@ def upload_online(reqPath):
     return render_template("upload_online.html", graph1JSON=graph1JSON, data={'files': fileObjs,
                                                  'parentFolder': parentFolderPath}, curr_wp=session["curr_wp"], session_results_table=session_results_table, enumerate=enumerate)
 
-@app.route("/graphs_compare", methods=["GET", "POST"])
-@login_required
-def graphs_compare():
-    """GUI for comparing plots
-    # Display a list of uploaded user files and folder structure, select with checkboxes what graphs to compare and press compare
-    #if request.method == 'POST':
-    session_folders = db.execute("SELECT folder FROM sessions WHERE user_id=? AND NOT folder='' AND NOT folder='tmp'", session["user_id"])
-    for folder in session_folders:
-        print(os.listdir(folder['folder']))
-    
-    return render_template("graphs_compare.html")
-    #print(session_folders)
-    
-    # Read csv content with pandas into dataframe starting from row 18 (otherwise pandas can't read properly the data)
-    try:
-        df = pd.read_csv(os.path.join(session_folder, filename), skiprows=18)
-    except:
-        return render_template("upload_online.html")
-    
-    # Change column names in dataframe to more intuitive
-    df.columns = ['Frequency[MHz]','Max(Ver,Hor)', 'Ver', 'Hor']
-    
-    # Generate JSON graph from dataframe
-    graph1JSON = generate_graph(df, request.form.get("graph_title"))
-
-
-    return render_template("upload_online.html", graph1JSON=graph1JSON)
-    """
-
 @app.route("/login", methods=["GET", "POST"])
 def login():
     """Log user in"""
