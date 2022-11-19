@@ -216,10 +216,10 @@ def upload_online(reqPath):
             
             # rename if filename already exists
             count = 0
-            while os.path.exists(os.path.join(session_folder, filename)):
+            while os.path.exists(os.path.join(os.getcwd(), session_folder, filename)):
                 count += 1
                 filename = os.path.join('%s-%d%s' % (filename_head, count, filename_tail))
-            file = open(os.path.join(session_folder, filename), 'w')
+            file = open(os.path.join(os.getcwd(), session_folder, filename), 'w')
             file.write(csv_data)
             flash("Result was successfully added")
             # Store working point details and file location in SQL Database
@@ -252,20 +252,21 @@ def upload_online(reqPath):
             filename = os.path.join('%s%s' % (filename_head, filename_tail))
             # rename if filename already exists
             count = 0
-            while os.path.exists(os.path.join(session_folder, filename)):
+            while os.path.exists(os.path.join(os.getcwd(), session_folder, filename)):
                 count += 1
                 filename = os.path.join('%s-%d%s' % (filename_head, count, filename_tail))
-            file.save(os.path.join(session_folder, filename))
+            file.save(os.path.join(os.getcwd(), session_folder, filename))
             flash("Result was successfully added")
             # Store working point details and file location in SQL Database
             db.execute("INSERT INTO graphs (session_id, model, layout, is_cl, v_in, v_out, i_in, i_load, dc, power, mode, comment, filename, timestamp, is_potted) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", session_id,
                      curr_wp["model"], curr_wp["layout"], 1 if curr_wp["cl_ol"] == "close_loop" else  0, curr_wp["v_in"], curr_wp["v_out"], curr_wp["i_in"], curr_wp["i_out"], curr_wp["dc"],
                       curr_wp["power_in"], curr_wp["mode"], curr_wp["user_comment"], filename, datetime.datetime.now().strftime("%H:%M:%S_%d%m%Y"), curr_wp["is_potted"])
+
             return redirect(request.url)
     # Join the base and the requested path
     # could have done os.path.join, but safe_join ensures that files are not fetched from parent folders of the base folder
-    absPath = safe_join(session_folder, reqPath)
-
+    absPath = safe_join(os.getcwd(), session_folder, reqPath)
+    print(absPath)
     # Return 404 if path doesn't exist
     if not os.path.exists(absPath):
         return abort(404)
@@ -298,8 +299,9 @@ def upload_online(reqPath):
     # TODO Create sessions page with option to resume specific session or just plot the CSVs from that session
     # TODO add multiple files upload page - upload offline or similar
     
+
     # Generate JSON graph from current session files object
-    graph1JSON = generate_multiple_graphs(session_results_table, session_folder)
+    graph1JSON = generate_multiple_graphs(session_results_table, os.path.join(os.getcwd(), session_folder))
     return render_template("upload_online.html", graph1JSON=graph1JSON, data={'files': fileObjs,
                                                  'parentFolder': parentFolderPath}, curr_wp=session["curr_wp"], session_results_table=session_results_table, enumerate=enumerate)
 
@@ -477,20 +479,20 @@ def allowed_file(filename):
 
 def create_test_session_folder():
     # Get path to current folder (app.py)
-    basedir = os.path.abspath(os.path.dirname(__file__))
+    #basedir = os.path.abspath(os.path.dirname(__file__))
     
     # Get username from SQL Database based on session user_id
     username = db.execute("SELECT username FROM users WHERE id=?", session["user_id"])[0]["username"]
     
     # Get user_folder absolute address
-    user_folder = os.path.join(basedir, app.config['UPLOAD_FOLDER'], username)
+    user_folder = os.path.join(app.config['UPLOAD_FOLDER'], username)
     
     # Create a folder user private folder if not exists already
     if not os.path.exists(user_folder): 
         os.makedirs(user_folder)
     
     # Get session_folder absolute address
-    session_folder = os.path.join(basedir, app.config['UPLOAD_FOLDER'], username, session["session"] + "_" + datetime.datetime.now().strftime("%d_%m_%Y_%H_%M_%S"))
+    session_folder = os.path.join(app.config['UPLOAD_FOLDER'], username, session["session"] + "_" + datetime.datetime.now().strftime("%d_%m_%Y_%H_%M_%S"))
     
     # Create a session folder inside private folder if not exists already
     if not os.path.exists(session_folder): 
@@ -545,7 +547,7 @@ def delete_item():
 
 
 if __name__ == '__main__':
-    app.run(host="0.0.0.0")
-    #app.run(port= 5001, debug=True)
+    #app.run(host="0.0.0.0")
+    app.run(debug=True)
 
     #app.run(host="0.0.0.0", debug=True)
