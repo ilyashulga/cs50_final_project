@@ -512,7 +512,7 @@ def delete_item():
     if request.method == "POST":
         session_folder = db.execute("SELECT folder FROM sessions WHERE id=?", session["id"])[0]['folder']
         file_name = db.execute("SELECT filename FROM graphs WHERE id=?", request.form.get("delete"))[0]['filename']
-        os.remove(os.path.join(session_folder, file_name))
+        os.remove(os.path.join(os.getcwd(), session_folder, file_name))
         db.execute("DELETE FROM graphs WHERE id=?", request.form.get("delete"))
     return redirect("/upload_online")
 
