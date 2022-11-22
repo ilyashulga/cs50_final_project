@@ -2,7 +2,7 @@
 
 import os
 from cs50 import SQL
-from flask import Flask, flash, redirect, render_template, request, session, url_for, safe_join, send_file, abort
+from flask import Flask, flash, redirect, render_template, request, session, url_for, safe_join, send_file, abort, send_from_directory
 from pathlib import Path
 from flask_session import Session
 from tempfile import mkdtemp
@@ -263,10 +263,11 @@ def upload_online(reqPath):
                       curr_wp["power_in"], curr_wp["mode"], curr_wp["user_comment"], filename, datetime.datetime.now().strftime("%H:%M:%S_%d%m%Y"), curr_wp["is_potted"])
 
             return redirect(request.url)
+    
     # Join the base and the requested path
     # could have done os.path.join, but safe_join ensures that files are not fetched from parent folders of the base folder
     absPath = safe_join(os.getcwd(), session_folder, reqPath)
-    print(absPath)
+    
     # Return 404 if path doesn't exist
     if not os.path.exists(absPath):
         return abort(404)
@@ -515,6 +516,13 @@ def delete_item():
         os.remove(os.path.join(os.getcwd(), session_folder, file_name))
         db.execute("DELETE FROM graphs WHERE id=?", request.form.get("delete"))
     return redirect("/upload_online")
+
+@app.route('/static/<path:filename>', methods=['GET', 'POST'])
+@login_required
+def download(filename):
+
+    # Send file named as requested in "filename" from folder "static"
+    return send_from_directory(directory='static', filename=filename)
 
 
 if __name__ == '__main__':
