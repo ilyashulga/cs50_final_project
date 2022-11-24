@@ -181,7 +181,7 @@ def upload_online(reqPath):
                 curr_wp["i_out"] = curr_wp["v_out"] / curr_wp["r_load"]
                 curr_wp["i_in"] = curr_wp["power_in"] / curr_wp["v_out"]
             curr_wp["v_in"] = curr_wp["v_ps"]
-
+        
         # Round all numbers in curr_wp dict to two decimal points
         for key in curr_wp:
             if type(curr_wp[key]) == float or type(curr_wp[key]) == int:

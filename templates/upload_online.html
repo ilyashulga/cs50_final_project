@@ -21,15 +21,20 @@
             <div class="mb-3">
                 <label for="model">Model (aka. S440)</label>
                 <input autocomplete="off" autofocus class="form-control mx-auto w-auto" id="model" name="model" placeholder="Model" type="text" value={{ curr_wp["model"] }}>
-                <label for="layout">Layout / AP Level</label>
+                <label for="layout">Layout / AP Level / AS Level</label>
                 <input autocomplete="off" autofocus class="form-control mx-auto w-auto" id="layout" name="layout" placeholder="Layout" type="text" not empty value={{ curr_wp["layout"] }}>
                 <input type="checkbox" id="potted" name="potted" value="potted" {{ "checked" if curr_wp["is_potted"]==1 }}>
                 <label for="potted"> Unit is potted</label><br>
                 <input type="radio" id="ol" name="cl_ol" value="open_loop" onclick="send('ol', 'dc', 'mode', 'i_lim_ps')" {{ "checked" if curr_wp["cl_ol"]=="open_loop" else True }} {{ "send('ol', 'dc', 'mode', 'i_lim_ps')" if curr_wp["cl_ol"]=="open_loop" else True }}>
                 <label for="ol">Open Loop</label><br>
                 <input type="radio" id="cl" name="cl_ol" value="close_loop" onclick="send('cl', 'dc', 'mode', 'i_lim_ps')" {{ "checked" if curr_wp["cl_ol"]=="close_loop" }} {{ "send('cl', 'dc', 'mode', 'i_lim_ps')" if curr_wp["cl_ol"]=="close_loop" }}>
-                <label for="cl">Closed Loop</label><br>
-                </label>
+                <label for="cl">MPPT</label>
+                <a href= "/static/MPP_Calculator_ver.1.0.xlsx">
+                    <span><i style="margin-right:0.3em"></i>MPP Calculator</span>
+                </a>
+                <br>
+                <input type="radio" id="noise" name="cl_ol" value="noise" onclick="send('noise', 'dc', 'mode', 'i_lim_ps')" >
+                <label for="noise">Noise Floor</label><br>
                 <label for="v_ps">Power Supply Voltage [V]</label>
                 <input autocomplete="off" autofocus class="form-control mx-auto w-auto" min=8 max=150 id="v_ps" name="v_ps" placeholder="Vps (Volt)" type="number" step="any" value={{ curr_wp["v_ps"] }}>
                 <label for="i_lim_ps">Power Supply Curr. Limit [A]</label>
@@ -58,9 +63,7 @@
             <p>** If no file selected - csv will be downloaded from address specified </p>
             <p>*** Trace2: Vertical Antenna Polarization [Max_Hold 360deg] </p>
             <p>**** Trace3: Horizontal Antenna Polarization [Max_Hold 360deg] </p>
-            <a href= "/static/MPP_Calculator_ver.1.0.xlsx">
-                <span><i style="margin-right:0.3em"></i>MPP Calculator</span>
-                </a>
+
             <br>
             <br>
             <input type=submit value="Add Trace">
@@ -165,6 +168,8 @@ th {text-align: left;}
                 input2.value = data[inputId2];
                 input3.value = data[inputId3];
                 input3.value = null;
+                document.getElementById('v_ps').disabled = 0;
+                document.getElementById('r_load').disabled = 0;
             }
             else if (checkbox.checked && checkboxId == 'cl') {
                 input1.disabled = 1;
@@ -174,8 +179,18 @@ th {text-align: left;}
                 data[inputId2] = input2.value;
                 data[inputId3] = input3.value;
                 input1.value = null;
-                input2.value = null;  
-            }  
+                input2.value = null;
+                document.getElementById('v_ps').disabled = 0;
+                document.getElementById('r_load').disabled = 0;  
+            } 
+            else if (checkbox.checked && checkboxId == 'noise')
+            {
+                input1.disabled = 1;
+                input2.disabled = 1;
+                input3.disabled = 1;
+                document.getElementById('v_ps').disabled = 1;
+                document.getElementById('r_load').disabled = 1;
+            }
         }
         // --------------------Enabled and Disables blocks----------------
 </script>
