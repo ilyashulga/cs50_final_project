@@ -41,7 +41,7 @@ form {
   overflow: hidden;
 }
 input {
-  float: middle;
+  float: left;
   clear: both;
 }
 
@@ -56,3 +56,10 @@ input {
   .right {
     width: 20%;
   }
+
+
+  .mb-3 {
+    margin-top:auto;
+    margin-bottom:auto;
+    text-align:left;
+}

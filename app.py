@@ -85,49 +85,114 @@ def upload_online(reqPath):
     graph1JSON = []
 
     if request.method == 'POST':
-        # Ensure model was submitted
-        if not request.form.get("model"):
-            flash('Must specify Model')
-            return redirect(request.url)
+        if request.form['cl_ol'] == 'close_loop' or request.form['cl_ol'] == 'open_loop': # for regulat measurement (not noise floor)
+            # Ensure model was submitted
+            if not request.form.get("model"):
+                flash('Must specify Model')
+                return redirect(request.url)
 
-        # Ensure model was submitted
-        if not request.form.get("layout"):
-            flash('Must specify layout')
-            return redirect(request.url)
+            # Ensure model was submitted
+            if not request.form.get("layout"):
+                flash('Must specify layout')
+                return redirect(request.url)
 
-        # Check power supply voltage was submitted
-        if not request.form.get("v_ps"):
-            flash('Must specify power supply voltage (Vps)')
-            return redirect(request.url)
-        
-        # Check load resistor value was submitted
-        if not request.form.get("r_load"):
-            flash('Must specify load resistor')
-            return redirect(request.url)    
+            # Check power supply voltage was submitted
+            if not request.form.get("v_ps"):
+                flash('Must specify power supply voltage (Vps)')
+                return redirect(request.url)
+            
+            # Check load resistor value was submitted
+            if not request.form.get("r_load"):
+                flash('Must specify load resistor')
+                return redirect(request.url)    
 
-        # Introduce working point variables dict
-        curr_wp = {
-            "model": request.form.get("model"),
-            "layout": request.form.get("layout"),
-            "is_potted": 1 if request.form.get("potted")=="potted" else 0,
-            "cl_ol": request.form['cl_ol'],
-            "v_ps": float(request.form.get("v_ps")),
-            "i_lim_ps": 0,
-            "r_load": float(request.form.get("r_load")),
-            "dc": 0,
-            "mode": "none",
-            "power_in": 0,
-            "sas_ser": 1,
-            "sas_par": 100,
-            "i_out": 0,
-            "v_out": 0,
-            "v_in": 0,
-            "i_in": 0,
-            "eff": 0.98,
-            "user_comment": request.form.get("comment"),
-            "filename": "none",
-            "is_final": False,  # true will mean graph will be visible via dash viewing application
-            "inst_address": request.form.get("inst_address")
+            # Introduce working point variables dict
+            curr_wp = {
+                    "model": request.form.get("model"),
+                    "layout": request.form.get("layout"),
+                    "is_potted": 1 if request.form.get("potted")=="potted" else 0,
+                    "cl_ol": request.form['cl_ol'],
+                    "v_ps": float(request.form.get("v_ps")),
+                    "i_lim_ps": 0,
+                    "r_load": float(request.form.get("r_load")),
+                    "dc": 0,
+                    "mode": "none",
+                    "power_in": 0,
+                    "sas_ser": 1,
+                    "sas_par": 100,
+                    "i_out": 0,
+                    "v_out": 0,
+                    "v_in": 0,
+                    "i_in": 0,
+                    "eff": 0.98,
+                    "user_comment": request.form.get("comment"),
+                    "filename": "none",
+                    "is_final": False,  # true will mean graph will be visible via dash viewing application
+                    "inst_address": request.form.get("inst_address")
+                }
+        elif request.form['cl_ol'] == 'noise_floor': # if noise floor is measured, insert appropriate values into curr_wp (for plots names and table representation)
+            curr_wp = {
+                "model": 'Noise Floor',
+                "layout": 'Noise Floor',
+                "is_potted": 0,
+                "cl_ol": request.form['cl_ol'],
+                "v_ps": 0,
+                "i_lim_ps": 0,
+                "r_load": 0,
+                "dc": 0,
+                "mode": 'Noise Floor',
+                "power_in": 0,
+                "sas_ser": 1,
+                "sas_par": 100,
+                "i_out": 0,
+                "v_out": 0,
+                "v_in": 0,
+                "i_in": 0,
+                "eff": 0.98,
+                "user_comment": request.form.get("comment"),
+                "filename": "none",
+                "is_final": False,  # true will mean graph will be visible via dash viewing application
+                "inst_address": request.form.get("inst_address")
+            }
+        elif request.form['cl_ol'] == 'safety':
+            # Ensure model was submitted
+            if not request.form.get("model"):
+                flash('Must specify Model')
+                return redirect(request.url)
+
+            # Ensure model was submitted
+            if not request.form.get("layout"):
+                flash('Must specify layout')
+                return redirect(request.url)
+
+            # Check power supply voltage was submitted
+            if not request.form.get("v_ps"):
+                flash('Must specify power supply voltage (Vps)')
+                return redirect(request.url)
+            
+            # Introduce working point variables dict
+            curr_wp = {
+                "model": request.form.get("model"),
+                "layout": request.form.get("layout"),
+                "is_potted": 1 if request.form.get("potted")=="potted" else 0,
+                "cl_ol": request.form['cl_ol'],
+                "v_ps": float(request.form.get("v_ps")),
+                "i_lim_ps": 0,
+                "r_load": 0,
+                "dc": 0,
+                "mode": "none",
+                "power_in": 0,
+                "sas_ser": 1,
+                "sas_par": 100,
+                "i_out": 0,
+                "v_out": 0,
+                "v_in": 0,
+                "i_in": 0,
+                "eff": 0.98,
+                "user_comment": request.form.get("comment"),
+                "filename": "none",
+                "is_final": False,  # true will mean graph will be visible via dash viewing application
+                "inst_address": request.form.get("inst_address")
             }
 
         # Check inputs specific for close_loop:
@@ -154,10 +219,7 @@ def upload_online(reqPath):
             else:
                 curr_wp["dc"] = curr_wp["v_out"] / curr_wp["v_in"]
                 curr_wp["mode"] = "Buck"
-        
-        # If open loop is selected
-        # Check inputs specific for open_loop:
-        if request.form['cl_ol'] == 'open_loop':
+        elif request.form['cl_ol'] == 'open_loop': # If open loop is selected, check inputs specific for open_loop:
             if not request.form.get("dc"):
                 flash('Must specify duty cycle')
                 return redirect(request.url)
@@ -181,7 +243,15 @@ def upload_online(reqPath):
                 curr_wp["i_out"] = curr_wp["v_out"] / curr_wp["r_load"]
                 curr_wp["i_in"] = curr_wp["power_in"] / curr_wp["v_out"]
             curr_wp["v_in"] = curr_wp["v_ps"]
-        
+        elif request.form['cl_ol'] == 'safety':
+            curr_wp["v_in"] = curr_wp["v_ps"]
+            curr_wp["i_out"] = 0
+            curr_wp["i_in"] = 0.05
+            curr_wp["mode"] = "Safety"
+            curr_wp["v_out"] = 1.0
+            curr_wp["dc"] = curr_wp["v_out"] / curr_wp["v_in"]
+            curr_wp["power_in"] = curr_wp["i_in"] * curr_wp["v_in"]
+
         # Round all numbers in curr_wp dict to two decimal points
         for key in curr_wp:
             if type(curr_wp[key]) == float or type(curr_wp[key]) == int:
@@ -210,7 +280,10 @@ def upload_online(reqPath):
             if csv_data == "Can't reach instrument":
                 flash('Instrument not reachable at specified address')
                 return redirect(request.url)
-            filename_head = curr_wp["model"] + '_' + ("Potted_" if curr_wp["is_potted"] else "Not_potted_") + curr_wp["layout"] + '_WP_' + curr_wp["cl_ol"] + '_' + curr_wp["mode"] + '_Power_' + str(curr_wp["power_in"]) + '_' + curr_wp["user_comment"]
+            if not request.form['cl_ol'] == 'noise':
+                filename_head = curr_wp["model"] + '_' + ("Potted_" if curr_wp["is_potted"] else "Not_potted_") + curr_wp["layout"] + '_WP_' + curr_wp["cl_ol"] + '_' + curr_wp["mode"] + '_Power_' + str(curr_wp["power_in"]) + '_' + curr_wp["user_comment"]
+            else:
+                filename_head = curr_wp["model"] + '_' + curr_wp["user_comment"]
             filename_tail = '.csv'
             filename = os.path.join('%s%s' % (filename_head, filename_tail))
             
@@ -247,7 +320,10 @@ def upload_online(reqPath):
         """
         if file and allowed_file(file.filename):
             filename_head = secure_filename(file.filename)
-            filename_head = curr_wp["model"] + '_' + ("Potted_" if curr_wp["is_potted"] else "Not_potted_") + curr_wp["layout"] + '_WP_' + curr_wp["cl_ol"] + '_' + curr_wp["mode"] + '_Power_' + str(curr_wp["power_in"]) + '_' + curr_wp["user_comment"]
+            if not request.form['cl_ol'] == 'noise':
+                filename_head = curr_wp["model"] + '_' + ("Potted_" if curr_wp["is_potted"] else "Not_potted_") + curr_wp["layout"] + '_WP_' + curr_wp["cl_ol"] + '_' + curr_wp["mode"] + '_Power_' + str(curr_wp["power_in"]) + '_' + curr_wp["user_comment"]
+            else:
+                filename_head = curr_wp["model"] + '_' + curr_wp["user_comment"]
             filename_tail = '.csv'
             filename = os.path.join('%s%s' % (filename_head, filename_tail))
             # rename if filename already exists
@@ -299,7 +375,7 @@ def upload_online(reqPath):
     # TODO Consider plotting graphs only if button is pressed / V is marked on ALL/some graphs
     # TODO Create sessions page with option to resume specific session or just plot the CSVs from that session
     # TODO add multiple files upload page - upload offline or similar
-    
+    print(session["curr_wp"]['cl_ol'])
 
     # Generate JSON graph from current session files object
     graph1JSON = generate_multiple_graphs(session_results_table, os.path.join(os.getcwd(), session_folder))
@@ -526,7 +602,7 @@ def download(filename):
 
 
 if __name__ == '__main__':
-    app.run(host="0.0.0.0")
-    #app.run(debug=True)
+    #app.run(host="0.0.0.0")
+    app.run(port=8051, debug=True)
 
     #app.run(host="0.0.0.0", debug=True)

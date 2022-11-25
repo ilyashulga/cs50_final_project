@@ -19,54 +19,59 @@
         <br>
         <form method=post enctype=multipart/form-data action="/upload_online">
             <div class="mb-3">
-                <label for="model">Model (aka. S440)</label>
-                <input autocomplete="off" autofocus class="form-control mx-auto w-auto" id="model" name="model" placeholder="Model" type="text" value={{ curr_wp["model"] }}>
-                <label for="layout">Layout / AP Level / AS Level</label>
-                <input autocomplete="off" autofocus class="form-control mx-auto w-auto" id="layout" name="layout" placeholder="Layout" type="text" not empty value={{ curr_wp["layout"] }}>
-                <input type="checkbox" id="potted" name="potted" value="potted" {{ "checked" if curr_wp["is_potted"]==1 }}>
-                <label for="potted"> Unit is potted</label><br>
-                <input type="radio" id="ol" name="cl_ol" value="open_loop" onclick="send('ol', 'dc', 'mode', 'i_lim_ps')" {{ "checked" if curr_wp["cl_ol"]=="open_loop" else True }} {{ "send('ol', 'dc', 'mode', 'i_lim_ps')" if curr_wp["cl_ol"]=="open_loop" else True }}>
-                <label for="ol">Open Loop</label><br>
-                <input type="radio" id="cl" name="cl_ol" value="close_loop" onclick="send('cl', 'dc', 'mode', 'i_lim_ps')" {{ "checked" if curr_wp["cl_ol"]=="close_loop" }} {{ "send('cl', 'dc', 'mode', 'i_lim_ps')" if curr_wp["cl_ol"]=="close_loop" }}>
-                <label for="cl">MPPT</label>
+                <label for="model">Model (aka. S440)</label><br>
+                <input autocomplete="off" autofocus class="form-control mx-auto w-auto" id="model" name="model" placeholder="Model" type="text" value={{ curr_wp["model"] }} {{ "disabled" if curr_wp["cl_ol"]=="noise_floor" }}><br><br>
+                <label for="layout">Layout / AP Level / AS Level</label><br>
+                <input autocomplete="off" autofocus class="form-control mx-auto w-auto" id="layout" name="layout" placeholder="Layout" type="text" not empty value={{ curr_wp["layout"] }} {{ "disabled" if curr_wp["cl_ol"]=="noise_floor" }}><br><br>
+                <label for="potted"> Unit is potted</label>
+                <input type="checkbox" id="potted" name="potted" value="potted" {{ "checked" if curr_wp["is_potted"]==1 }} {{ "disabled" if curr_wp["cl_ol"]=="noise_floor" }}><br>
+                <label for="noise">Noise Floor</label>
+                <input type="radio" id="noise" name="cl_ol" value="noise_floor" onclick="send('noise', 'dc', 'mode', 'i_lim_ps')" {{ "checked" if curr_wp["cl_ol"]=="noise_floor" }} ><br>
+                <label for="safety">Safety</label>
+                <input type="radio" id="safety" name="cl_ol" value="safety" onclick="send('safety', 'dc', 'mode', 'i_lim_ps')" {{ "checked" if curr_wp["cl_ol"]=="safety" }} ><br>
+                <label for="ol">Open Loop</label>
+                <input type="radio" id="ol" name="cl_ol" value="open_loop" onclick="send('ol', 'dc', 'mode', 'i_lim_ps')" {{ "checked" if curr_wp["cl_ol"]=="open_loop" }} ><br>
+                <label for="cl">MPPT   </label>
+                <input type="radio" id="cl" name="cl_ol" value="close_loop" onclick="send('cl', 'dc', 'mode', 'i_lim_ps')" {{ "checked" if curr_wp["cl_ol"]=="close_loop" }} >
+                
                 <a href= "/static/MPP_Calculator_ver.1.0.xlsx">
                     <span><i style="margin-right:0.3em"></i>MPP Calculator</span>
                 </a>
                 <br>
-                <input type="radio" id="noise" name="cl_ol" value="noise" onclick="send('noise', 'dc', 'mode', 'i_lim_ps')" >
-                <label for="noise">Noise Floor</label><br>
-                <label for="v_ps">Power Supply Voltage [V]</label>
-                <input autocomplete="off" autofocus class="form-control mx-auto w-auto" min=8 max=150 id="v_ps" name="v_ps" placeholder="Vps (Volt)" type="number" step="any" value={{ curr_wp["v_ps"] }}>
-                <label for="i_lim_ps">Power Supply Curr. Limit [A]</label>
-                <input autocomplete="off" autofocus class="form-control mx-auto w-auto" min=0.1 max=20 id="i_lim_ps" name="i_lim_ps" placeholder="I_lim_ps (A)" type="number" step="any" value={{ curr_wp["i_lim_ps"] }} {{ "disabled" if curr_wp["cl_ol"]=="open_loop" }}>
-                <label for="r_load">Load Resistor [Ohm]</label>
-                <input autocomplete="off" autofocus class="form-control mx-auto w-auto" min=0.1 max=200 id="r_load" name="r_load" placeholder="Load Resistor (Ohm)" type="number" step="any" value={{ curr_wp["r_load"] }}>
-                <label for="dc">Duty Cycle [0-1]</label>
-                <input autocomplete="off" autofocus class="form-control mx-auto w-auto" min=0.01 max=1 id="dc" name="dc" placeholder="Duty Cycle (%)" type="number" {{ "disabled" if curr_wp["cl_ol"]=="close_loop" }} step="any" value={{ curr_wp["dc"] }} >
-                <br>
-                <label for="mode">Chose operating mode:</label>
-                    <select name="mode" id="mode" value={{ curr_wp["mode"] }} {{ "disabled" if curr_wp["cl_ol"]=="close_loop" }}>
+
+                <label for="v_ps">Power Supply Voltage [V]</label><br>
+                <input autocomplete="off" autofocus class="form-control mx-auto w-auto" min=8 max=150 id="v_ps" name="v_ps" placeholder="Vps (Volt)" type="number" step="any" value={{ curr_wp["v_ps"] }} {{ "disabled" if curr_wp["cl_ol"]=="noise_floor" }}><br><br>
+                <label for="i_lim_ps">Power Supply Curr. Limit [A]</label><br>
+                <input autocomplete="off" autofocus class="form-control mx-auto w-auto" min=0.1 max=20 id="i_lim_ps" name="i_lim_ps" placeholder="I_lim_ps (A)" type="number" step="any" value={{ curr_wp["i_lim_ps"] }} {{ "disabled" if not curr_wp["cl_ol"]=="close_loop" }}><br><br>
+                <label for="r_load">Load Resistor [Ohm]</label><br>
+                <input autocomplete="off" autofocus class="form-control mx-auto w-auto" min=0.1 max=200 id="r_load" name="r_load" placeholder="Load Resistor (Ohm)" type="number" step="any" value={{ curr_wp["r_load"] }} {{ "disabled" if (curr_wp["cl_ol"]=="noise_floor" or curr_wp["cl_ol"]=="safety") }}><br><br>
+                <label for="dc">Duty Cycle [0-1]</label><br>
+                <input autocomplete="off" autofocus class="form-control mx-auto w-auto" min=0.01 max=1 id="dc" name="dc" placeholder="Duty Cycle (%)" type="number" {{ "disabled" if not curr_wp["cl_ol"]=="open_loop" }} step="any" value={{ curr_wp["dc"] }} ><br><br>
+                <label for="mode">Chose operating mode:</label><br>
+                    <select name="mode" id="mode" value={{ curr_wp["mode"] }} {{ "disabled" if not curr_wp["cl_ol"]=="open_loop" }}>
                         <option value="Buck">Buck</option>
                         <option value="Boost">Boost</option>
                         <!-- <option value="Buck_Boost">Buck-Boost</option>
                         <option value="Do_Nothing">Do Nothing</option>
                         <option value="Safety">Safety</option> -->
                     </select>
-            </div>
-            <input autocomplete="off" autofocus class="form-control mx-auto w-auto" id="comment" name="comment" placeholder="Comment..." type="text" value="{{ curr_wp["user_comment"] }}">
-            <br>
-            <input type=file name=file><br><br>
-            
-            <label for="inst_address">Spectrum http address</label>
-            <input type="url" minlength="14" maxlength="22" size="22" pattern="^http?://((\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.){3}(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])/$" id="inst_address" name="inst_address" value={{ curr_wp["inst_address"] }}>
-            <p>* Valid address example: http://10.77.10.65/ </p>
-            <p>** If no file selected - csv will be downloaded from address specified </p>
-            <p>*** Trace2: Vertical Antenna Polarization [Max_Hold 360deg] </p>
-            <p>**** Trace3: Horizontal Antenna Polarization [Max_Hold 360deg] </p>
+                <br><br>
+                <label for="comment">Comments</label><br>
+                <input autocomplete="off" autofocus class="form-control mx-auto w-auto" id="comment" name="comment" placeholder="Comment..." type="text" value="{{ curr_wp["user_comment"] }}">
+                <br><br>
+                <input type=file name=file><br><br>
+                
+                <label for="inst_address">Spectrum http address</label>
+                <input type="url" minlength="14" maxlength="22" size="22" pattern="^http?://((\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.){3}(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])/$" id="inst_address" name="inst_address" value={{ curr_wp["inst_address"] }}><br><br><br>
+                <p>* Valid address example: http://10.77.10.65/ </p>
+                <p>** If no file selected - csv will be downloaded from address specified </p>
+                <p>*** Trace2: Vertical Antenna Polarization [Max_Hold 360deg] </p>
+                <p>**** Trace3: Horizontal Antenna Polarization [Max_Hold 360deg] </p>
 
-            <br>
-            <br>
-            <input type=submit value="Add Trace">
+                <br>
+                <br>
+                <input type=submit value="Add Trace">
+            </div>
         </form>
     </div>
 </div>
@@ -79,7 +84,7 @@
             <th>Model</th>
             <th>Layout</th>
             <th>Potted?</th>
-            <th>Close/Open Loop</th>
+            <th>MPPT?</th>
             <th>Mode</th>
             <th>Duty Cycle</th>
             <th>Vin [V]</th>
@@ -101,7 +106,7 @@
             <td>{{ row['model'] }}</td>
             <td>{{ row['layout'] }}</td>
             <td>{{ "Potted" if row['is_potted']==1 else "Not Potted" }}</td>
-            <td>{{ "Close Loop" if row['is_cl']==1 else "Open Loop" }}</td>
+            <td>{{ "Yes" if row['is_cl']==1 else "No" }}</td>
             <td>{{ row['mode'] }}</td>
             <td>{{ row['dc'] }}</td>
             <td>{{ row['v_in'] }}</td>
@@ -152,6 +157,7 @@ th {text-align: left;}
             i_lim_ps: null
         };
 
+        // Function for handling user input field in different WP 
         function send(checkboxId, inputId1, inputId2, inputId3) {
             // get checkbox and input
             let checkbox = document.getElementById(checkboxId);
@@ -170,6 +176,9 @@ th {text-align: left;}
                 input3.value = null;
                 document.getElementById('v_ps').disabled = 0;
                 document.getElementById('r_load').disabled = 0;
+                document.getElementById('model').disabled = 0;
+                document.getElementById('layout').disabled = 0;
+                document.getElementById('potted').disabled = 0;
             }
             else if (checkbox.checked && checkboxId == 'cl') {
                 input1.disabled = 1;
@@ -181,15 +190,32 @@ th {text-align: left;}
                 input1.value = null;
                 input2.value = null;
                 document.getElementById('v_ps').disabled = 0;
-                document.getElementById('r_load').disabled = 0;  
+                document.getElementById('r_load').disabled = 0;
+                document.getElementById('model').disabled = 0;
+                document.getElementById('layout').disabled = 0;
+                document.getElementById('potted').disabled = 0;
             } 
-            else if (checkbox.checked && checkboxId == 'noise')
+            else if (checkbox.checked && checkboxId === 'noise')
             {
                 input1.disabled = 1;
                 input2.disabled = 1;
                 input3.disabled = 1;
                 document.getElementById('v_ps').disabled = 1;
                 document.getElementById('r_load').disabled = 1;
+                document.getElementById('model').disabled = 1;
+                document.getElementById('layout').disabled = 1;
+                document.getElementById('potted').disabled = 1;
+            }
+            else if (checkbox.checked && checkboxId === 'safety')
+            {
+                input1.disabled = 1;
+                input2.disabled = 1;
+                input3.disabled = 1;
+                document.getElementById('v_ps').disabled = 0;
+                document.getElementById('r_load').disabled = 1;
+                document.getElementById('model').disabled = 0;
+                document.getElementById('layout').disabled = 0;
+                document.getElementById('potted').disabled = 0;
             }
         }
         // --------------------Enabled and Disables blocks----------------
