@@ -58,8 +58,14 @@ input {
   }
 
 
-  .mb-3 {
+.mb-3 {
     margin-top:auto;
     margin-bottom:auto;
     text-align:left;
 }
+
+.mb-4 {
+  display: flex;
+  justify-content: center;
+}
+

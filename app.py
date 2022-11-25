@@ -375,7 +375,7 @@ def upload_online(reqPath):
     # TODO Consider plotting graphs only if button is pressed / V is marked on ALL/some graphs
     # TODO Create sessions page with option to resume specific session or just plot the CSVs from that session
     # TODO add multiple files upload page - upload offline or similar
-    print(session["curr_wp"]['cl_ol'])
+    #print(session["curr_wp"]['cl_ol'])
 
     # Generate JSON graph from current session files object
     graph1JSON = generate_multiple_graphs(session_results_table, os.path.join(os.getcwd(), session_folder))
@@ -479,8 +479,18 @@ def new_session():
     if request.method == "POST":
         session_name = request.form.get("session_name")
         session_desc = request.form.get("session_description")
+        if request.form.get("lab") == 'modiin':
+            print("Modiin")
+            session_lab = "Modiin"
+        elif request.form.get("lab") == 'hamada':
+            print("hamada")
+            session_lab = "-1 Floor HaMada"
+        elif request.form.get("lab") == 'qualitek':
+            print("qualitek")
+            session_lab = "Qualitek"
+
         try:
-            db.execute("INSERT INTO sessions (name, description, user_id, timestamp, is_open, folder) VALUES(?, ?, ?, DATETIME('now','localtime'), 1, 'tmp')", session_name, session_desc, session["user_id"])
+            db.execute("INSERT INTO sessions (name, description, user_id, timestamp, is_open, folder, lab) VALUES(?, ?, ?, DATETIME('now','localtime'), 1, 'tmp', ?)", session_name, session_desc, session["user_id"], session_lab)
         except:
             apology("Can't open new session", 400)
         session["session"] = db.execute("SELECT name FROM sessions WHERE user_id=? AND is_open=1", session["user_id"])[0]['name']

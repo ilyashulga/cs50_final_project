@@ -8,11 +8,16 @@
     <h1>Open new session</h1>
     <br>
     <form action="/new_session" method="post">
-        <div class="mb-3">
+        <select name="lab" id="lab" value='Modiin'>
+            <option value="modiin">Modiin EMC Lab</option>
+            <option value="hamada">-1 Floor Chamber</option>
+            <option value="qualitek">Qualitek EMC Lab</option>
+        </select><br><br>
+        <div class="mb-4">
             <input autocomplete="off" autofocus class="form-control mx-auto w-auto" id="session_name" name="session_name" placeholder="Session name" type="text">
         </div>
-        <div class="mb-3">
-            <input autocomplete="off" autofocus class="form-control mx-auto w-auto" id="session_description" name="session_description" placeholder="Session description" type="text">
+        <div class="mb-4">
+            <input autocomplete="off" autofocus class="form-control mx-auto w-auto" id="session_description" name="session_description" placeholder="Session description" type="text" style="float: center;">
         </div>
         <button class="btn btn-primary" type="submit">Open New Session</button>
     </form>
@@ -22,6 +27,7 @@
         <thead>
             <tr>
                 <th>#</th>
+                <th>Lab</th>
                 <th>When Created</th>
                 <th>Session name</th>
                 <th>Description</th>
@@ -33,6 +39,7 @@
             {% for index, row in enumerate(user_sessions_table) %}
             
                 <td>{{ index }}</td>
+                <td>{{ row['lab'] }}</td>
                 <td>{{ row['timestamp'] }}</td>
                 <td>{{ row['name'] }}</td>
                 <td>{{ row['description'] }}</td>
