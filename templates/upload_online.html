@@ -92,9 +92,10 @@
             <th>Vout [V]</th>
             <th>Iout [A]</th>
             <th>Power [W]</th>
+            <th>Comment</th>
             <th>Link to *.csv</th>
             <th>Is Final</th>
-            <th>Comment</th>
+            <th>Toggle Final</th>
             <th>Delete Entry</th>
         </tr>
     </thead>
@@ -114,13 +115,18 @@
             <td>{{ row['v_out'] }}</td>
             <td>{{ row['i_load'] }}</td>
             <td>{{ row['power'] }}</td>
+            <td>{{ row['comment'] }}</td>
             <td>
                 <a href= "{{ url_for('getFiles', reqPath=row['filename']) }}">
                 <span><i style="margin-right:0.3em"></i>Download</span>
                 </a>
             </td>
             <td>{{ "Yes" if row['is_final']==1 else "No" }}</td>
-            <td>{{ row['comment'] }}</td>
+            <td>
+                <form action="/toggle_final" method="post" value="{{ row['id'] }}">
+                    <button name="toggle" value="{{ row['id'] }}" class="btn btn-primary" type="submit">Go</button>
+                </form>
+            </td>
             <td>
                 <form action="/delete_item" method="post" value="{{ row['id'] }}">
                     <button name="delete" value="{{ row['id'] }}" class="btn btn-primary" type="submit">Delete</button>

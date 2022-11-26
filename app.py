@@ -593,6 +593,22 @@ def getFiles(reqPath):
                                                  'parentFolder': parentFolderPath})
 
 
+@app.route('/toggle_final', methods=['GET', 'POST'])
+@login_required
+def toggle_final():
+    if request.method == "POST":
+        is_final = int(db.execute("SELECT is_final FROM graphs WHERE id=?", request.form.get("toggle"))[0]["is_final"])
+        #print(is_final)
+        try:
+            db.execute("UPDATE graphs SET is_final = ? WHERE id=?", (0 if is_final else 1), request.form.get("toggle"))
+            if is_final==0:
+                flash("Successfully set as final")
+            else:
+                flash("Successfully removed from finals")
+        except:
+            flash("Can't set final flag")
+    return redirect("/upload_online")
+
 @app.route('/delete_item', methods=['GET', 'POST'])
 @login_required
 def delete_item():
