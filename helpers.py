@@ -120,14 +120,14 @@ def generate_multiple_graphs(session_results_table, session_folder):
                         height=1000,
                         legend=dict(
                             #yanchor="top",
-                            y=-0.3,
+                            y=-0.1,
                             #xanchor="left",
                             #x=0.01,
                             orientation='h'
                             ),
                         title={
                             'text': "Radiated Emission",
-                            'y':0.9,
+                            'y':0.95,
                             'x':0.5,
                             'xanchor': 'center',
                             'yanchor': 'top'}
