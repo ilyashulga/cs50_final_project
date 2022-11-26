@@ -60,16 +60,17 @@
                 <input autocomplete="off" autofocus class="form-control mx-auto w-auto" id="comment" name="comment" placeholder="Comment..." type="text" value="{{ curr_wp["user_comment"] }}">
                 <br><br>
                 <input type=file name=file><br><br>
-                
-                <label for="inst_address">Spectrum http address</label>
-                <input type="url" minlength="14" maxlength="22" size="22" pattern="^http?://((\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.){3}(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])/$" id="inst_address" name="inst_address" value={{ curr_wp["inst_address"] }}><br><br><br>
+                <label for="inst_address">Spectrum http address</label><br>
+                <input type="url" minlength="14" maxlength="22" size="22" pattern="^http?://((\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.){3}(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])/$" id="inst_address" name="inst_address" value={{ curr_wp["inst_address"] }}>
+                <br><br>
                 <p>* Valid address example: http://10.77.10.65/ </p>
+                <label for="minus_1_data">Data in "-1 Floor" format</label><br>
+                <textarea id="minus_1_data" name="minus_1_data" rows="5" cols="30" placeholder="Paste tace raw data from spectrum..."></textarea>
+                <br><br>
                 <p>** If no file selected - csv will be downloaded from address specified </p>
                 <p>*** Trace2: Vertical Antenna Polarization [Max_Hold 360deg] </p>
                 <p>**** Trace3: Horizontal Antenna Polarization [Max_Hold 360deg] </p>
 
-                <br>
-                <br>
                 <input type=submit value="Add Trace">
             </div>
         </form>

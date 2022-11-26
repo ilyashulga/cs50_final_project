@@ -78,17 +78,22 @@ def generate_multiple_graphs(session_results_table, session_folder):
             # Introduce index for every result
             i = 0
             # Read each csv content with pandas into dataframe starting from row 18 (otherwise pandas can't read properly the data)
-            try:
-                df = pd.read_csv(os.path.join(session_folder, result["filename"]), skiprows=18)
-            except:
-                return apology("Error in reading CSV files", 400)
-            #print(df.head())
-            # Change column names in dataframe to more intuitive
-            df.columns = ['Frequency[MHz]','Max(Ver,Hor)', 'Ver', 'Hor']
-            # Iterate over each file's rows and make required calculations/substitutions
-            for row in range(len(df)):
-                df.at[row,'Max(Ver,Hor)'] = max(df.at[row,'Hor'], df.at[row,'Ver'])
-                df.at[row,'Frequency[MHz]'] = df.at[row,'Frequency[MHz]']/1000000
+            if result["filename"].endswith('.csv'):
+                try:
+                    df = pd.read_csv(os.path.join(session_folder, result["filename"]), skiprows=18)
+                except:
+                    return apology("Error in reading CSV files", 400)
+                #print(df.head())
+                # Change column names in dataframe to more intuitive
+                df.columns = ['Frequency[MHz]','Max(Ver,Hor)', 'Ver', 'Hor']
+                # Iterate over each file's rows and make required calculations/substitutions
+                for row in range(len(df)):
+                    df.at[row,'Max(Ver,Hor)'] = max(df.at[row,'Hor'], df.at[row,'Ver'])
+                    df.at[row,'Frequency[MHz]'] = df.at[row,'Frequency[MHz]']/1000000
+            else:
+                df = pd.read_csv(os.path.join(session_folder, os.path.join(session_folder, result["filename"])), delim_whitespace=True, index_col=False, skiprows=26, skipfooter=15)
+                df.columns = ['Frequency[MHz]','Max(Ver,Hor)']
+                #print(df.head(50))
             # create xy chart using plotly library
             if result["model"] != 'Noise Floor':
                 graph_name = str(index) + "." + result["model"] + " " + ("Potted" if result["is_potted"] else "Not_Potted") + " " + result["layout"] + " " + result["comment"] + " " + result["mode"] + " " + ("CL" if result["is_cl"]==1 else "OL") + " Vin=" + str(result["v_in"]) + "[V]" + " Iout=" + str(result["i_load"]) + "[A]" + " DC=" + str(result["dc"]) + " P=" + str(result["power"]) + "[W]"
@@ -145,7 +150,7 @@ def open_connection(ip):
 
     rm = pyvisa.ResourceManager()
     inst = rm.open_resource("TCPIP0::" + ip + "::inst0::INSTR")
-    print(inst.query("*IDN?"))
+    #print(inst.query("*IDN?"))
 
 def close_connection(rm, inst):
     rm.close()

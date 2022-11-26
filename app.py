@@ -266,14 +266,46 @@ def upload_online(reqPath):
         if not curr_wp['inst_address'] and 'file' not in request.files:
             flash('Please chose file or provide instrument IP address')
             return redirect(request.url)
-        
         # If file is selected - use file upload as a raw data source
         elif 'file' in request.files and file.filename != '':
             file = request.files['file']
             if file.filename == '':
                 flash('No selected file')
                 return redirect(request.url)
-        # If no file was selected by user - try to download csv directly from spectrum analyzer
+        # If data in -1 chamber format inserted
+        elif request.form.get("minus_1_data"):
+            
+            txt_data = request.form.get("minus_1_data")
+            
+            if not request.form['cl_ol'] == 'noise':
+                filename_head = curr_wp["model"] + '_' + ("Potted_" if curr_wp["is_potted"] else "Not_potted_") + curr_wp["layout"] + '_WP_' + curr_wp["cl_ol"] + '_' + curr_wp["mode"] + '_Power_' + str(curr_wp["power_in"]) + '_' + curr_wp["user_comment"]
+            else:
+                filename_head = curr_wp["model"] + '_' + curr_wp["user_comment"]
+            filename_tail = '.txt'
+            filename = os.path.join('%s%s' % (filename_head, filename_tail))
+
+            # rename if filename already exists
+            count = 0
+            while os.path.exists(os.path.join(os.getcwd(), session_folder, filename)):
+                count += 1
+                filename = os.path.join('%s-%d%s' % (filename_head, count, filename_tail))
+            file = open(os.path.join(os.getcwd(), session_folder, filename), 'w')
+            file.write(txt_data)
+            
+            
+            df = pd.read_csv(os.path.join(session_folder, filename), delim_whitespace=True, index_col=False, skiprows=26, skipfooter=15)
+            df.columns = ["MHz", "dBuV"]
+            #print(df.head(50))
+            # Store working point details and file location in SQL Database
+            try:
+                db.execute("INSERT INTO graphs (session_id, model, layout, is_cl, v_in, v_out, i_in, i_load, dc, power, mode, comment, filename, timestamp, is_potted) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", session_id,
+                     curr_wp["model"], curr_wp["layout"], 1 if curr_wp["cl_ol"] == "close_loop" else  0, curr_wp["v_in"], curr_wp["v_out"], curr_wp["i_in"], curr_wp["i_out"], curr_wp["dc"],
+                      curr_wp["power_in"], curr_wp["mode"], curr_wp["user_comment"], filename, datetime.datetime.now().strftime("%H:%M:%S_%d%m%Y"), curr_wp["is_potted"])
+                flash("Result was successfully added")
+            except:
+                flash("Error in adding data to database")
+            return redirect(request.url)
+        # If no file was selected or no data in -1 chamber format inserted by user - try to download csv directly from spectrum analyzer
         elif curr_wp['inst_address']:
             #flash('Getting .csv from spectrum')
             csv_data = get_csv_from_spectrum(curr_wp['inst_address'])
@@ -300,10 +332,9 @@ def upload_online(reqPath):
                      curr_wp["model"], curr_wp["layout"], 1 if curr_wp["cl_ol"] == "close_loop" else  0, curr_wp["v_in"], curr_wp["v_out"], curr_wp["i_in"], curr_wp["i_out"], curr_wp["dc"],
                       curr_wp["power_in"], curr_wp["mode"], curr_wp["user_comment"], filename, datetime.datetime.now().strftime("%H:%M:%S_%d%m%Y"), curr_wp["is_potted"])
             return redirect(request.url)
-        else:
-            if file.filename == '':
-                flash('No selected file')
-                return redirect(request.url)
+
+
+            
         # If the user does not select a file, the browser submits an
         # empty file without a filename.
         """ SECTION without get data from spectrum  
@@ -480,13 +511,13 @@ def new_session():
         session_name = request.form.get("session_name")
         session_desc = request.form.get("session_description")
         if request.form.get("lab") == 'modiin':
-            print("Modiin")
+            #print("Modiin")
             session_lab = "Modiin"
         elif request.form.get("lab") == 'hamada':
-            print("hamada")
+            #print("hamada")
             session_lab = "-1 Floor HaMada"
         elif request.form.get("lab") == 'qualitek':
-            print("qualitek")
+            #print("qualitek")
             session_lab = "Qualitek"
 
         try:
@@ -628,7 +659,7 @@ def download(filename):
 
 
 if __name__ == '__main__':
-    #app.run(host="0.0.0.0")
-    app.run(port=8051, debug=True)
+    app.run(host="0.0.0.0")
+    #app.run(port=8051, debug=True)
 
     #app.run(host="0.0.0.0", debug=True)
