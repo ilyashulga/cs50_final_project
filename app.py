@@ -510,6 +510,12 @@ def new_session():
     if request.method == "POST":
         session_name = request.form.get("session_name")
         session_desc = request.form.get("session_description")
+
+        if (not session_name) or (not session_desc):
+            #print("enter if")
+            flash("Please provide session name and description")
+            return render_template("new_session.html", user_sessions_table=db.execute("SELECT * FROM sessions WHERE user_id=?", session["user_id"]), enumerate=enumerate)
+
         if request.form.get("lab") == 'modiin':
             #print("Modiin")
             session_lab = "Modiin"
@@ -542,7 +548,8 @@ def resume_session():
             apology("Can't resume session", 400)
         
         session["session"] = db.execute("SELECT name FROM sessions WHERE user_id=? AND is_open=1", session["user_id"])[0]['name']
-        
+        #db.execute("UPDATE sessions SET is_open=0 WHERE user_id=? AND is_open=1", session["user_id"])
+        #session.pop("session")
         try:
             session["id"] = db.execute("SELECT id FROM sessions WHERE is_open=1 AND user_id=?", session['user_id'])[0]['id']
         except:
