@@ -67,11 +67,14 @@ def generate_multiple_graphs(session_results_table, session_folder):
     except:
         return apology("Error in reading limits.csv file", 400)
 
-    df.columns = ['Frequency[MHz]','CISPR11_RE_CLASS_B_Group_1', 'CISPR11_RE_CLASS_B_Group_1_Important']
+    df.columns = ['Frequency[MHz]','CISPR11_RE_CLASS_B_Group_1', 'CISPR11_RE_CLASS_B_Group_1_Important', 'CISPR11_RE_CLASS_A_Group_1_up_to_20kVA']
     graph_name = 'Limit: CISPR11 RE CLASS B Group 1'
     fig.add_trace(go.Scatter(x=df["Frequency[MHz]"], y=df["CISPR11_RE_CLASS_B_Group_1"], name=graph_name, mode="lines"))
     graph_name = 'Limit (important): CISPR11 RE CLASS B Group 1'
     fig.add_trace(go.Scatter(x=df["Frequency[MHz]"], y=df["CISPR11_RE_CLASS_B_Group_1_Important"], name=graph_name, mode="lines"))
+    graph_name = 'Limit: CISPR11 RE CLASS A Group 1 <20kVA'
+    fig.add_trace(go.Scatter(x=df["Frequency[MHz]"], y=df["CISPR11_RE_CLASS_A_Group_1_up_to_20kVA"], name=graph_name, mode="lines", visible='legendonly'))
+    
     if session_results_table:
         # Iterate over files passed as a file object
         for index, result in enumerate(session_results_table):
