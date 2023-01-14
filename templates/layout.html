@@ -34,10 +34,12 @@
                         <ul class="navbar-nav me-auto mt-2">
                             <li class="nav-item"><a class="nav-link" href="/upload_online">Resume session</a></li>
                         </ul>
-                        
+                        <ul class="navbar-nav me-auto mt-2">
+                            <li class="nav-item"><a class="nav-link" href="/static/plotter_db_instructions.drawio.html" target="_blank">Setup Instructions and Tips</a></li>
+                        </ul>
                         <ul class="navbar-nav ms-auto mt-2">
                             {% if session["session"] %}
-                            <li class="nav-item"><a class="nav-link" href="/">Current test session: {{ session["session"] }}</a></li>
+                            <li class="nav-item"><a class="nav-link" href="/upload_online">Current test session: {{ session["session"] }}</a></li>
                             <form action="/close_session" method="post">
                                 <button class="btn btn-primary" type="submit">Close Test Session</button>
                             </form>

@@ -65,7 +65,44 @@ input {
 }
 
 .mb-4 {
-  display: flex;
-  justify-content: center;
+  display: inline-block;
+  justify-content: left;
+  padding: 1px;
+  width: 200px;
+  text-align: left;
+  
 }
 
+.mb-4 label {
+  display: inline-block;
+  
+  text-align: left;
+}
+
+.mb-5 {
+margin-bottom: 10px;
+text-align: center;
+}
+
+
+.mb-5 input {
+  width: 100%;
+  padding: 15px;
+}
+
+.mb-5 label {
+  display: inline-block;
+  width: 300px;
+}
+
+.column1 {
+  float: left;
+}
+
+  .left {
+    width: 60%;
+  }
+
+  .right {
+    width: 40%;
+  }

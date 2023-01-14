@@ -85,6 +85,19 @@ def upload_online(reqPath):
     graph1JSON = []
 
     if request.method == 'POST':
+        # Check if there are special characters in inputs (e.g. when user types "/" it may cause creating wrong folder path) later, can add more to the special_characters list
+        special_characters = "\/"
+        if any(c in special_characters for c in str(request.form.get("comment"))):
+            flash('/ and \ symbols in comment are not allowed')
+            return redirect(request.url)
+        if any(c in special_characters for c in str(request.form.get("model"))):
+            flash('/ and \ symbols in model are not allowed')
+            return redirect(request.url)
+        if any(c in special_characters for c in str(request.form.get("layout"))):
+            flash('/ and \ symbols in layout are not allowed')
+            return redirect(request.url)
+        
+
         if request.form['cl_ol'] == 'close_loop' or request.form['cl_ol'] == 'open_loop': # for regulat measurement (not noise floor)
             # Ensure model was submitted
             if not request.form.get("model"):
@@ -277,6 +290,11 @@ def upload_online(reqPath):
             
             txt_data = request.form.get("minus_1_data")
             
+            validity_check = "TRACE	1001"
+            if not validity_check in txt_data:
+                flash('No correct -1 chamber data format detected')
+                return redirect(request.url)
+
             if not request.form['cl_ol'] == 'noise':
                 filename_head = curr_wp["model"] + '_' + ("Potted_" if curr_wp["is_potted"] else "Not_potted_") + curr_wp["layout"] + '_WP_' + curr_wp["cl_ol"] + '_' + curr_wp["mode"] + '_Power_' + str(curr_wp["power_in"]) + '_' + curr_wp["user_comment"]
             else:
@@ -510,10 +528,33 @@ def new_session():
     if request.method == "POST":
         session_name = request.form.get("session_name")
         session_desc = request.form.get("session_description")
+        cables_orientation = request.form.get("cables_orientation")
+        cmc_box = request.form.get("cmc_box")
+        if request.form.get("beads"):
+            beads = request.form.get("beads")
+        else:
+            beads = "None"
+        load = request.form.get("load")
+        attenuator = request.form.get("6dB")
+        if request.form.get("comment"):
+            comment = request.form.get("comment")
+        else:
+            comment = "None"
 
-        if (not session_name) or (not session_desc):
+        if request.form.get("clamp_in") and request.form.get("clamp_out"):
+            clamp = "In and Out"
+        elif request.form.get("clamp_in"):
+            clamp = "In Only"
+        elif request.form.get("clamp_out"):
+            clamp = "Out Only"
+        else:
+            clamp = "None"
+
+        special_characters = "\/"
+
+        if (not session_name) or (not session_desc) or any(c in special_characters for c in session_name) or any(c in special_characters for c in session_desc):
             #print("enter if")
-            flash("Please provide session name and description")
+            flash("Please provide session name and description (/\ symbols are not allowed")
             return render_template("new_session.html", user_sessions_table=db.execute("SELECT * FROM sessions WHERE user_id=?", session["user_id"]), enumerate=enumerate)
 
         if request.form.get("lab") == 'modiin':
@@ -527,7 +568,7 @@ def new_session():
             session_lab = "Qualitek"
 
         try:
-            db.execute("INSERT INTO sessions (name, description, user_id, timestamp, is_open, folder, lab) VALUES(?, ?, ?, DATETIME('now','localtime'), 1, 'tmp', ?)", session_name, session_desc, session["user_id"], session_lab)
+            db.execute("INSERT INTO sessions (name, description, user_id, timestamp, is_open, folder, lab, cables_orient, cmc_box, clamps, beads, load_type, attenuator, setup_comment) VALUES(?, ?, ?, DATETIME('now','localtime'), 1, 'tmp', ?, ?, ?, ?, ?, ?, ?, ?)", session_name, session_desc, session["user_id"], session_lab, cables_orientation, cmc_box, clamp, beads, load, attenuator, comment)
         except:
             apology("Can't open new session", 400)
         session["session"] = db.execute("SELECT name FROM sessions WHERE user_id=? AND is_open=1", session["user_id"])[0]['name']
@@ -666,7 +707,7 @@ def download(filename):
 
 
 if __name__ == '__main__':
-    app.run(host="0.0.0.0")
-    #app.run(port=8051, debug=True)
+    #app.run(host="0.0.0.0")
+    app.run(port=8051, debug=True)
 
     #app.run(host="0.0.0.0", debug=True)

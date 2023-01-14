@@ -5,6 +5,12 @@
 {% endblock %}
 
 {% block main %}
+<div class="column1 left">
+    <h1>Setup Instructions</h1>
+    <iframe src="/static/plotter_db_instructions.drawio.html" width="100%" height="1000" style="border:none;">
+    </iframe>
+</div>
+<div class="column1 right">
     <h1>Open new session</h1>
     <br>
     <form action="/new_session" method="post">
@@ -17,12 +23,63 @@
             <input autocomplete="off" autofocus class="form-control mx-auto w-auto" id="session_name" name="session_name" placeholder="Session name" type="text">
         </div>
         <div class="mb-4">
-            <input autocomplete="off" autofocus class="form-control mx-auto w-auto" id="session_description" name="session_description" placeholder="Session description" type="text" style="float: center;">
+            <input autocomplete="off" autofocus class="form-control mx-auto w-auto" id="session_description" name="session_description" placeholder="Session description" size="30" type="text" style="float: center;">
         </div>
-        <button class="btn btn-primary" type="submit">Open New Session</button>
+        <h3>Setup Details</h3>
+        <div class="mb-4">
+            <h6>Cable orientation:</h6>
+            <label for="pi">PI (form of Greek PI letter)</label>
+            <input type="radio" id="pi" name="cables_orientation" value="pi" />
+        <br>
+            <label for="i">I (straight down)</label>
+            <input type="radio" id="i" name="cables_orientation" value="i" />
+        </div><br>
+
+        <div class="mb-4">
+            <h6>Filtering:</h6>
+            <label for="clamp_in"> Clamp on input </label>
+            <input type="checkbox" id="clamp_in" name="clamp_in" value="clamp_in" />
+        <br>
+            <label for="clamp_out"> Clamp on output </label>
+            <input type="checkbox" id="clamp_out" name="clamp_out" value="clamp_out"><br>
+            <label for="cmc_box"> CMC Box </label>
+            <input type="checkbox" id="cmc_box" name="cmc_box" value="Yes"><br>
+        </div><br>
+        <div class="mb-4">
+            <label for="beads">Additional beads on cables under the chamber floor? (please specify location and bead P/N if any)</label>
+            <input type="text" autocomplete="off" autofocus class="form-control mx-auto w-auto" id="beads" name="beads" placeholder="Location and Beads P/N"/>
+        </div><br>
+
+        <div class="mb-4">
+            
+
+            <h6>Load type:</h6>
+            <label for="r">Discrete Resistors</label>
+            <input type="radio" id="r" name="load" value="Discrete Resistors" />
+            <br>
+            <label for="rlb">Resistive Load Bank</label>
+            <input type="radio" id="rlb" name="load" value="Resistive Load Bank" />
+            <br>
+            <label for="i">Electronic Load</label>
+            <input type="radio" id="el" name="load" value="Electronic Load" />
+            <br><br>
+            <label for="6dB"> 6dB attenuator </label>
+            <input type="checkbox" id="6dB" name="6dB" value="6dB" checked/>
+        </div><br>
+        <div class="mb-4">
+            <label for="comment">Additional Comments</label>
+            <input type="text" autocomplete="off" autofocus class="form-control mx-auto w-auto" id="comment" name="comment" placeholder="What's special about this setup..." size="30"/>
+        </div><br>
+        
+        <button class="btn btn-primary" type="submit">Open New Session</button><br><br><br><br><br><br><br><br><br><br><br>
     </form>
-    <br><br>
+
+    
+    
+</div>
+    <div class="mb-5">
     <h1>or resume previous session</h1>
+    </div>
     <table class="table table-striped table-responsive">
         <thead>
             <tr>
@@ -32,6 +89,7 @@
                 <th>Session name</th>
                 <th>Description</th>
                 <th>Unique ID</th>
+                <th>Setup</th>
                 <th>Resume Session</th>
             </tr>
         </thead>
@@ -44,6 +102,7 @@
                 <td>{{ row['name'] }}</td>
                 <td>{{ row['description'] }}</td>
                 <td>{{ row['id'] }}</td>
+                <td>Cables Orientation: {{ '' if row['cables_orient']=='Not Specified' else row['cables_orient'] }}, CMC Box: {{ '' if row['cmc_box']=='Not Specified' else row['cmc_box'] }}, Clamps: {{ '' if row['clamps']=='Not Specified' else row['clamps'] }}, Beads: {{ '' if row['beads']=='Not Specified' else row['beads'] }}, Load: {{ '' if row['load_type']=='Not Specified' else row['load_type'] }}, Attenuator: {{ row['attenuator'] }}, Comment: {{ '' if row['setup_comment']=='Not Specified' else row['setup_comment'] }} </td>
                 <td>
                     <form action="/resume_session" method="post" value="{{ row['id'] }}">
                         <button name="resume_session" value="{{ row['id'] }}" class="btn btn-primary" type="submit">Resume</button>
