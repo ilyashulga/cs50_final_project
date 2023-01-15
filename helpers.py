@@ -133,7 +133,13 @@ def generate_multiple_graphs(session_results_table, session_folder):
                             'y':0.95,
                             'x':0.5,
                             'xanchor': 'center',
-                            'yanchor': 'top'}
+                            'yanchor': 'top'
+                            },
+                        font=dict(
+                            family="Courier New",
+                            size=22 
+                            )
+
                         )
     
     # Convery plotly fig to JSON object
