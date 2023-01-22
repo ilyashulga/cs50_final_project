@@ -99,7 +99,8 @@ def generate_multiple_graphs(session_results_table, session_folder):
                 #print(df.head(50))
             # create xy chart using plotly library
             if result["model"] != 'Noise Floor':
-                graph_name = str(index) + "." + result["model"] + " " + ("Potted" if result["is_potted"] else "Not_Potted") + " " + result["layout"] + " " + result["comment"] + " " + result["mode"] + " " + ("CL" if result["is_cl"]==1 else "OL") + " Vin=" + str(result["v_in"]) + "[V]" + " Iout=" + str(result["i_load"]) + "[A]" + " DC=" + str(result["dc"]) + " P=" + str(result["power"]) + "[W]"
+                #graph_name = str(index) + "." + result["model"] + " " + ("Potted" if result["is_potted"] else "Not_Potted") + " " + result["layout"] + " " + result["comment"] + " " + result["mode"] + " " + ("CL" if result["is_cl"]==1 else "OL") + " Vin=" + str(result["v_in"]) + "[V]" + " Iout=" + str(result["i_load"]) + "[A]" + " DC=" + str(result["dc"]) + " P=" + str(result["power"]) + "[W]"
+                graph_name = str(index) + "." + result["model"] + " " + result["layout"] + " " + result["mode"] + " " + result["comment"] + " P=" + str(result["power"]) + "[W]"
             else:
                 graph_name = str(index) + "." + result["model"] + " " + result["comment"]
             fig.add_trace(go.Scatter(x=df["Frequency[MHz]"], y=df["Max(Ver,Hor)"], name=graph_name, mode="lines", visible='legendonly'))    
@@ -107,10 +108,10 @@ def generate_multiple_graphs(session_results_table, session_folder):
     # Change x-axis to log scale
     fig.update_xaxes(type="log")
     fig.update_xaxes(title_text='Frequency [MHz]',
-                        title_font = {"size": 20},
+                        title_font = {"size": 22},
                         title_standoff = 0)
     fig.update_yaxes(title_text='dBuV/m',
-                        title_font = {"size": 20},
+                        title_font = {"size": 22},
                         title_standoff = 5)
     fig.update_layout(#autosize=False,
                         hoverdistance=-1,
@@ -137,7 +138,7 @@ def generate_multiple_graphs(session_results_table, session_folder):
                             },
                         font=dict(
                             family="Courier New",
-                            size=22 
+                            size=16 
                             )
 
                         )
