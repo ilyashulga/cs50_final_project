@@ -1,6 +1,8 @@
 from sqlite3 import connect
 import pandas as pd
 
+# Goes over the database and changes all session folders to the new format (can be used as an example for bulk database manipultaion)
+
 # Configure standard SQLite3
 db = connect("plotter.db")
 

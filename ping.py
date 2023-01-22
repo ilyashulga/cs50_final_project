@@ -1,5 +1,7 @@
 import requests
 
+# This is an example of downloading spectrum raw data via HTTP GET request
+
 #for ping in range(1,255):
 address = "http://10.77.10.65/TransferData/GetTrace/" #+ str(ping)
 
