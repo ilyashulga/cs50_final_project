@@ -81,6 +81,7 @@
     <thead>
         <tr>
             <th>#</th>
+            <th>Trace ID</th>
             <th>Timestamp</th>
             <th>Model</th>
             <th>Layout</th>
@@ -97,6 +98,7 @@
             <th>Link to *.csv</th>
             <th>Is Final</th>
             <th>Toggle Final</th>
+            <th>Edit Entry</th>
             <th>Delete Entry</th>
         </tr>
     </thead>
@@ -104,6 +106,7 @@
         {% for index, row in enumerate(session_results_table) %}
         
             <td>{{ index }}</td>
+            <td>{{ row['id'] }}</td>
             <td>{{ row['timestamp'] }}</td>
             <td>{{ row['model'] }}</td>
             <td>{{ row['layout'] }}</td>
@@ -125,7 +128,12 @@
             <td>{{ "Yes" if row['is_final']==1 else "No" }}</td>
             <td>
                 <form action="/toggle_final" method="post" value="{{ row['id'] }}">
-                    <button name="toggle" value="{{ row['id'] }}" class="btn btn-primary" type="submit">Go</button>
+                    <button name="toggle" value="{{ row['id'] }}" class="btn btn-primary" type="submit" onclick="return confirm('Make trace appear as final?')">Go</button>
+                </form>
+            </td>
+            <td>
+                <form action="/edit_item" method="post" value="{{ row['id'] }}">
+                    <button name="edit" value="{{ row['id'] }}" class="btn btn-primary" type="submit">Edit</button>
                 </form>
             </td>
             <td>
