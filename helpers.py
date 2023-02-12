@@ -61,7 +61,7 @@ def generate_multiple_graphs(session_results_table, session_folder):
     """Generate multiple lines chart from csv files in folder location"""
     fig = go.Figure()
     
-    # Read Limits.csv content with pandas into dataframe and add to graphs figure
+    # Read Limits.csv content with pandas into dataframe and add to graphs figure (RE Limits)
     try:
         df = pd.read_csv(os.path.join(os.path.abspath(os.path.dirname(__file__)), "static", "Limits.csv"))
     except:
@@ -75,6 +75,18 @@ def generate_multiple_graphs(session_results_table, session_folder):
     graph_name = 'Limit: CISPR11 RE CLASS A Group 1 <20kVA'
     fig.add_trace(go.Scatter(x=df["Frequency[MHz]"], y=df["CISPR11_RE_CLASS_A_Group_1_up_to_20kVA"], name=graph_name, mode="lines", visible='legendonly'))
     
+    # Read Limits.csv content with pandas into dataframe and add to graphs figure (CE Limits)
+    try:
+        df = pd.read_csv(os.path.join(os.path.abspath(os.path.dirname(__file__)), "static", "Limits_CE.csv"))
+    except:
+        return apology("Error in reading Limits_CE.csv file", 400)
+    
+    df.columns = ['Frequency[MHz]','CISPR11_CE_CLASS_B_Group_1_AVG', 'CISPR11_CE_CLASS_A_Group_1_AVG']
+    graph_name = 'Limit: AVG CISPR11 CE CLASS B Group 1'
+    fig.add_trace(go.Scatter(x=df["Frequency[MHz]"], y=df["CISPR11_CE_CLASS_B_Group_1_AVG"], name=graph_name, mode="lines", visible='legendonly'))
+    graph_name = 'Limit: AVG CISPR11 CE CLASS A Group 1'
+    fig.add_trace(go.Scatter(x=df["Frequency[MHz]"], y=df["CISPR11_CE_CLASS_A_Group_1_AVG"], name=graph_name, mode="lines", visible='legendonly'))
+
     if session_results_table:
         # Iterate over files passed as a file object
         for index, result in enumerate(session_results_table):
