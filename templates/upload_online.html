@@ -135,6 +135,8 @@
                 <!--<form action="/edit_item" method="post" value="{{ row['id'] }}">
                     <button name="edit" value="{{ row['id'] }}" class="btn btn-primary" type="submit">Edit</button>
                 </form> -->
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#edit_data_row" data-bs-whatever="{{ index }}">Edit</button>
+
             </td>
             <td>
                 <form action="/delete_item" method="post" value="{{ row['id'] }}">
@@ -146,6 +148,70 @@
     </tbody>
 </table>
 
+
+
+<div class="modal fade" id="edit_data_row" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLabel">New message</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            <br>
+            <form method=post enctype=multipart/form-data action="/update_database">
+                <div id="session_results_table_div" data-my-variable="{{ session_results_table }}"></div>
+                <p>Please, double check all data is correct before submitting. You are updating database!</p>
+                <div class="mb-3">
+                    <label for="model_">Model (aka. S440)</label><br>
+                    <input autocomplete="off" autofocus class="form-control mx-auto w-auto" id="model_" name="model_" placeholder="Model" type="text" value="" required><br><br>
+                    <label for="layout_">Layout / AP Level / AS Level</label><br>
+                    <input autocomplete="off" autofocus class="form-control mx-auto w-auto" id="layout_" name="layout_" placeholder="Layout" type="text" required value="" ><br><br>
+                    <label for="potted_"> Unit is potted</label>
+                    <input type="checkbox" id="potted_" name="potted_" value="potted"><br>
+                    <label for="ol_">Open Loop</label>
+                    <input type="radio" id="ol_" name="cl_ol" value="open_loop" onclick="send('ol_', 'dc', 'mode', 'i_lim_ps')"  ><br>
+                    <label for="cl_">MPPT   </label>
+                    <input type="radio" id="cl_" name="cl_ol" value="close_loop" onclick="send('cl_', 'dc', 'mode', 'i_lim_ps')"><br>
+                    
+
+    
+                    <label for="power_">Power [W]</label><br>
+                    <input autocomplete="off" autofocus class="form-control mx-auto w-auto" min=1 max=2000 id="power_" name="power_" placeholder="Power (Watts)" type="number" step="any" value="" required><br><br>
+                    <label for="v_in">Input Voltage [V]</label><br>
+                    <input autocomplete="off" autofocus class="form-control mx-auto w-auto" min=8 max=150 id="v_in" name="v_in" placeholder="Vin (Volt)" type="number" step="any" value="" required><br><br>
+                    <label for="v_out">Output Voltage [V]</label><br>
+                    <input autocomplete="off" autofocus class="form-control mx-auto w-auto" min=8 max=150 id="v_out" name="v_out" placeholder="Vout (Volt)" type="number" step="any" value="" required><br><br>
+                    <label for="i_in">Input Current [A]</label><br>
+                    <input autocomplete="off" autofocus class="form-control mx-auto w-auto" min=0.1 max=20 id="i_in" name="i_in" placeholder="Iin (A)" type="number" step="any" value="" required><br><br>
+                    <label for="i_out">Output current [A]</label><br>
+                    <input autocomplete="off" autofocus class="form-control mx-auto w-auto" min=0.1 max=30 id="i_out" name="i_out" placeholder="Iout (A)" type="number" step="any" value="" required><br><br>
+                    <label for="dc_">Duty Cycle [0-1]</label><br>
+                    <input autocomplete="off" autofocus class="form-control mx-auto w-auto" min=0.01 max=1 id="dc_" name="dc_" placeholder="Duty Cycle (%)" type="number" step="any" required><br><br>
+                    <label for="mode_">Chose operating mode:</label><br>
+                        <select name="mode_" id="mode_" value="" not empty>
+                            <option value="Buck">Buck</option>
+                            <option value="Boost">Boost</option>
+                            <!-- <option value="Buck_Boost">Buck-Boost</option>
+                            <option value="Do_Nothing">Do Nothing</option>
+                            <option value="Safety">Safety</option> -->
+                        </select>
+                    <br><br>
+                    <label for="comment_">Comments</label><br>
+                    <input autocomplete="off" autofocus class="form-control mx-auto w-auto" id="comment_" name="comment_" placeholder="Comment..." type="text" value="" not empty>
+                    <br><br>
+                </div>
+            
+            
+            <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <!-- <button type="button" class="btn btn-primary" onclick="return confirm('Are you sure you want to update database?')">Update</button> -->
+            <input type=submit class="btn btn-primary" value="Update" onclick="return confirm('Are you sure you want to update database?')">
+            </div>
+            </form>
+      </div>
+    </div>
+  </div>
 
 
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.9.1/font/bootstrap-icons.css">
@@ -233,7 +299,82 @@ th {text-align: left;}
                 document.getElementById('potted').disabled = 0;
             }
         }
-        // --------------------Enabled and Disables blocks----------------
+        // --------------------End of Enabled and Disables blocks----------------
+        
+        //---------------------Modal for EDIT-----------------------------
+        var exampleModal = document.getElementById('edit_data_row')
+        exampleModal.addEventListener('show.bs.modal', function (event) {
+        // Button that triggered the modal
+        var button = event.relatedTarget
+        // Extract info from data-bs-* attributes
+        var recipient = button.getAttribute('data-bs-whatever')
+        // If necessary, you could initiate an AJAX request here
+        // and then do the updating in a callback.
+        //
+        // Update the modal's content.
+        var modalTitle = exampleModal.querySelector('.modal-title')
+        //var modalBodyInput = exampleModal.querySelector('.modal-body input')
+        //var layout = document.getElementById('layout')
+        
+        modalTitle.textContent = 'Edit Row #' + recipient + ' data'
+        
+        var session_results_table_div = document.getElementById('session_results_table_div')
+        var json_session_results_table = session_results_table_div.dataset.myVariable
+        // Parse the JSON string into a JavaScript object, need to replace single quotes to double quotes as well
+        var jsonObject = JSON.parse(json_session_results_table.replace(/'/g, '"'))
+        
+        // Create a list of dictionaries from the JavaScript object
+        var session_results_table = [];
+        for (var i = 0; i < jsonObject.length; i++) {
+            var dict = {};
+            dict['id'] = jsonObject[i].id;
+            dict['session_id'] = jsonObject[i].session_id;
+            dict['model'] = jsonObject[i].model;
+            dict['layout'] = jsonObject[i].layout;
+            dict['is_cl'] = jsonObject[i].is_cl;
+            dict['v_in'] = jsonObject[i].v_in;
+            dict['v_out'] = jsonObject[i].v_out;
+            dict['i_in'] = jsonObject[i].i_in;
+            dict['i_load'] = jsonObject[i].i_load;
+            dict['mode'] = jsonObject[i].mode;
+            dict['dc'] = jsonObject[i].dc;
+            dict['power'] = jsonObject[i].power;
+            dict['is_final'] = jsonObject[i].is_final;
+            dict['is_potted'] = jsonObject[i].is_potted;
+            dict['comment'] = jsonObject[i].comment;
+            session_results_table.push(dict);
+        }
+        
+        //console.log(session_results_table)
+        //modalBodyInput.value = session_results_table[recipient].model
+        
+        document.getElementById("model_").value = session_results_table[recipient].model
+        document.getElementById("layout_").value = session_results_table[recipient].layout
+        document.getElementById('potted_').checked = session_results_table[recipient].is_potted
+
+        if(session_results_table[recipient].is_cl == 0){
+            document.getElementById('ol_').checked = 1
+        }
+        else if(session_results_table[recipient].is_cl == 1){
+            document.getElementById('cl_').checked = 1
+        }
+        
+        document.getElementById("power_").value = Number(session_results_table[recipient].power)
+        document.getElementById("v_in").value = Number(session_results_table[recipient].v_in)
+        document.getElementById("v_out").value = Number(session_results_table[recipient].v_out)
+        document.getElementById("i_in").value = Number(session_results_table[recipient].i_in)
+        document.getElementById("i_out").value = Number(session_results_table[recipient].i_load)
+        document.getElementById("dc_").value = Number(session_results_table[recipient].dc)
+        document.getElementById("mode_").value = session_results_table[recipient].mode
+        document.getElementById("comment_").value = session_results_table[recipient].comment
+        
+        
+        //layout.value = session_results_table[recipient].layout
+        
+        //modelInput.value = session_results_table[recipient]['model']
+        //modelInput.value = "1"
+        })
+        //---------------------END of Modal for EDIT-----------------------------
 </script>
 
 {% endblock %}

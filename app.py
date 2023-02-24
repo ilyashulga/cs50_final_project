@@ -419,7 +419,7 @@ def upload_online(reqPath):
         session_results_table = db.execute("SELECT * FROM graphs WHERE session_id=?", session_id)
     except:
         session_results_table = {}
-    
+    #print(session_results_table)
     # TODO add is_final flag (or leave final flag assesible from DASH)
     # TODO Consider plotting graphs only if button is pressed / V is marked on ALL/some graphs
     # TODO Create sessions page with option to resume specific session or just plot the CSVs from that session
@@ -707,7 +707,7 @@ def download(filename):
 
 
 if __name__ == '__main__':
-    app.run(host="0.0.0.0")
-    #app.run(port=8051, debug=True)
+    #app.run(host="0.0.0.0")
+    app.run(port=8051, debug=True)
 
     #app.run(host="0.0.0.0", debug=True)
