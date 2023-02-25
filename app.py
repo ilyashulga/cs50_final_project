@@ -426,8 +426,15 @@ def upload_online(reqPath):
     # TODO add multiple files upload page - upload offline or similar
     #print(session["curr_wp"]['cl_ol'])
 
+    # Read session type from database
+    try:
+        session_type = db.execute("SELECT type FROM sessions WHERE id=?", session_id)
+    except:
+        session_type = 'none'
+        flash("Error in reading session type from database")
+    
     # Generate JSON graph from current session files object
-    graph1JSON = generate_multiple_graphs(session_results_table, os.path.join(os.getcwd(), session_folder))
+    graph1JSON = generate_multiple_graphs(session_results_table, os.path.join(os.getcwd(), session_folder), session_type)
     return render_template("upload_online.html", graph1JSON=graph1JSON, data={'files': fileObjs,
                                                  'parentFolder': parentFolderPath}, curr_wp=session["curr_wp"], session_results_table=session_results_table, enumerate=enumerate)
 
@@ -554,7 +561,7 @@ def new_session():
 
         if (not session_name) or (not session_desc) or any(c in special_characters for c in session_name) or any(c in special_characters for c in session_desc):
             #print("enter if")
-            flash("Please provide session name and description (/\ symbols are not allowed")
+            flash("Please provide session name and description (/\ symbols are not allowed)")
             return render_template("new_session.html", user_sessions_table=db.execute("SELECT * FROM sessions WHERE user_id=?", session["user_id"]), enumerate=enumerate)
 
         if request.form.get("lab") == 'modiin':
@@ -566,9 +573,11 @@ def new_session():
         elif request.form.get("lab") == 'qualitek':
             #print("qualitek")
             session_lab = "Qualitek"
+        
+        test_type = request.form.get("type")
 
         try:
-            db.execute("INSERT INTO sessions (name, description, user_id, timestamp, is_open, folder, lab, cables_orient, cmc_box, clamps, beads, load_type, attenuator, setup_comment) VALUES(?, ?, ?, DATETIME('now','localtime'), 1, 'tmp', ?, ?, ?, ?, ?, ?, ?, ?)", session_name, session_desc, session["user_id"], session_lab, cables_orientation, cmc_box, clamp, beads, load, attenuator, comment)
+            db.execute("INSERT INTO sessions (type, name, description, user_id, timestamp, is_open, folder, lab, cables_orient, cmc_box, clamps, beads, load_type, attenuator, setup_comment) VALUES(?, ?, ?, ?, DATETIME('now','localtime'), 1, 'tmp', ?, ?, ?, ?, ?, ?, ?, ?)", test_type, session_name, session_desc, session["user_id"], session_lab, cables_orientation, cmc_box, clamp, beads, load, attenuator, comment)
         except:
             apology("Can't open new session", 400)
         session["session"] = db.execute("SELECT name FROM sessions WHERE user_id=? AND is_open=1", session["user_id"])[0]['name']

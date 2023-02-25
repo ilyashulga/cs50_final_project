@@ -57,36 +57,43 @@ def generate_graph(df, graph_title):
 
     return graphJSON
 
-def generate_multiple_graphs(session_results_table, session_folder):
+def generate_multiple_graphs(session_results_table, session_folder, session_type):
     """Generate multiple lines chart from csv files in folder location"""
     fig = go.Figure()
     
-    # Read Limits.csv content with pandas into dataframe and add to graphs figure (RE Limits)
-    try:
-        df = pd.read_csv(os.path.join(os.path.abspath(os.path.dirname(__file__)), "static", "Limits.csv"))
-    except:
-        return apology("Error in reading limits.csv file", 400)
+    #print(session_type[0]['type'])
+    if session_type[0]['type'] == 'RE':
+        # Read Limits.csv content with pandas into dataframe and add to graphs figure (RE Limits)
+        try:
+            df = pd.read_csv(os.path.join(os.path.abspath(os.path.dirname(__file__)), "static", "Limits.csv"))
+        except:
+            return apology("Error in reading limits.csv file", 400)
 
-    df.columns = ['Frequency[MHz]','CISPR11_RE_CLASS_B_Group_1', 'CISPR11_RE_CLASS_B_Group_1_Important', 'CISPR11_RE_CLASS_A_Group_1_up_to_20kVA']
-    graph_name = 'Limit: CISPR11 RE CLASS B Group 1'
-    fig.add_trace(go.Scatter(x=df["Frequency[MHz]"], y=df["CISPR11_RE_CLASS_B_Group_1"], name=graph_name, mode="lines"))
-    graph_name = 'Limit (important): CISPR11 RE CLASS B Group 1'
-    fig.add_trace(go.Scatter(x=df["Frequency[MHz]"], y=df["CISPR11_RE_CLASS_B_Group_1_Important"], name=graph_name, mode="lines"))
-    graph_name = 'Limit: CISPR11 RE CLASS A Group 1 <20kVA'
-    fig.add_trace(go.Scatter(x=df["Frequency[MHz]"], y=df["CISPR11_RE_CLASS_A_Group_1_up_to_20kVA"], name=graph_name, mode="lines", visible='legendonly'))
-    
-    # Read Limits.csv content with pandas into dataframe and add to graphs figure (CE Limits)
-    try:
-        df = pd.read_csv(os.path.join(os.path.abspath(os.path.dirname(__file__)), "static", "Limits_CE.csv"))
-    except:
-        return apology("Error in reading Limits_CE.csv file", 400)
-    
-    df.columns = ['Frequency[MHz]','CISPR11_CE_CLASS_B_Group_1_AVG', 'CISPR11_CE_CLASS_A_Group_1_AVG']
-    graph_name = 'Limit: AVG CISPR11 CE CLASS B Group 1'
-    fig.add_trace(go.Scatter(x=df["Frequency[MHz]"], y=df["CISPR11_CE_CLASS_B_Group_1_AVG"], name=graph_name, mode="lines", visible='legendonly'))
-    graph_name = 'Limit: AVG CISPR11 CE CLASS A Group 1'
-    fig.add_trace(go.Scatter(x=df["Frequency[MHz]"], y=df["CISPR11_CE_CLASS_A_Group_1_AVG"], name=graph_name, mode="lines", visible='legendonly'))
-
+        df.columns = ['Frequency[MHz]','CISPR11_RE_CLASS_B_Group_1', 'CISPR11_RE_CLASS_B_Group_1_Important', 'CISPR11_RE_CLASS_A_Group_1_up_to_20kVA']
+        graph_name = 'Limit: CISPR11 RE CLASS B Group 1'
+        fig.add_trace(go.Scatter(x=df["Frequency[MHz]"], y=df["CISPR11_RE_CLASS_B_Group_1"], name=graph_name, mode="lines"))
+        graph_name = 'Limit (important): CISPR11 RE CLASS B Group 1'
+        fig.add_trace(go.Scatter(x=df["Frequency[MHz]"], y=df["CISPR11_RE_CLASS_B_Group_1_Important"], name=graph_name, mode="lines"))
+        graph_name = 'Limit: CISPR11 RE CLASS A Group 1 <20kVA'
+        fig.add_trace(go.Scatter(x=df["Frequency[MHz]"], y=df["CISPR11_RE_CLASS_A_Group_1_up_to_20kVA"], name=graph_name, mode="lines", visible='legendonly'))
+        graph_title = 'Radiated Emission'
+        y_axis_units = 'dBuV/m'
+    elif session_type[0]['type'] == 'CE':
+        # Read Limits.csv content with pandas into dataframe and add to graphs figure (CE Limits)
+        try:
+            df = pd.read_csv(os.path.join(os.path.abspath(os.path.dirname(__file__)), "static", "Limits_CE.csv"))
+        except:
+            return apology("Error in reading Limits_CE.csv file", 400)
+        df.columns = ['Frequency[MHz]','CISPR11_CE_CLASS_B_Group_1_AVG', 'CISPR11_CE_CLASS_A_Group_1_AVG']
+        graph_name = 'Limit: AVG CISPR11 CE CLASS B Group 1'
+        fig.add_trace(go.Scatter(x=df["Frequency[MHz]"], y=df["CISPR11_CE_CLASS_B_Group_1_AVG"], name=graph_name, mode="lines", visible='legendonly'))
+        graph_name = 'Limit: AVG CISPR11 CE CLASS A Group 1'
+        fig.add_trace(go.Scatter(x=df["Frequency[MHz]"], y=df["CISPR11_CE_CLASS_A_Group_1_AVG"], name=graph_name, mode="lines"))
+        graph_title = 'Conducted Emission'
+        y_axis_units = 'dBuV'
+    elif session_type[0]['type'] == 'Loop_Antenna':
+        graph_title = 'LF Radiated Emission (Loop Antenna)'
+        y_axis_units = 'dBuA/m'
     if session_results_table:
         # Iterate over files passed as a file object
         for index, result in enumerate(session_results_table):
@@ -122,7 +129,7 @@ def generate_multiple_graphs(session_results_table, session_folder):
     fig.update_xaxes(title_text='Frequency [MHz]',
                         title_font = {"size": 22},
                         title_standoff = 0)
-    fig.update_yaxes(title_text='dBuV/m',
+    fig.update_yaxes(title_text = y_axis_units,
                         title_font = {"size": 22},
                         title_standoff = 5)
     fig.update_layout(#autosize=False,
@@ -142,7 +149,7 @@ def generate_multiple_graphs(session_results_table, session_folder):
                             orientation='h'
                             ),
                         title={
-                            'text': "Radiated Emission",
+                            'text': graph_title,
                             'y':0.95,
                             'x':0.5,
                             'xanchor': 'center',

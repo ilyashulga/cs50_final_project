@@ -14,10 +14,17 @@
     <h1>Open new session</h1>
     <br>
     <form action="/new_session" method="post">
+        <label for="lab">Laboratory: </label>
         <select name="lab" id="lab" value='Modiin'>
             <option value="modiin">Modiin EMC Lab</option>
             <option value="hamada">-1 Floor Chamber</option>
             <option value="qualitek">Qualitek EMC Lab</option>
+        </select><br><br>
+        <label for="type">Test type: </label>
+        <select name="type" id="type" value='RE'>
+            <option value="RE">Radiated Emission</option>
+            <option value="CE">Conducted Emission</option>
+            <option value="Loop_Antenna">Loop Antenna</option>
         </select><br><br>
         <div class="mb-4">
             <input autocomplete="off" autofocus class="form-control mx-auto w-auto" id="session_name" name="session_name" placeholder="Session name" type="text">
@@ -85,6 +92,7 @@
             <tr>
                 <th>#</th>
                 <th>Lab</th>
+                <th>Test type</th>
                 <th>When Created</th>
                 <th>Session name</th>
                 <th>Description</th>
@@ -98,6 +106,7 @@
             
                 <td>{{ index }}</td>
                 <td>{{ row['lab'] }}</td>
+                <td>{{ row['type'] }}</td>
                 <td>{{ row['timestamp'] }}</td>
                 <td>{{ row['name'] }}</td>
                 <td>{{ row['description'] }}</td>
