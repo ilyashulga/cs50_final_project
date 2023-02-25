@@ -161,10 +161,12 @@
             <br>
             <form method=post enctype=multipart/form-data action="/update_database">
                 <div id="session_results_table_div" data-my-variable="{{ session_results_table }}"></div>
-                <p>Please, double check all data is correct before submitting. You are updating database!</p>
+                <p>Please, double check all data is correct before submitting.</p>
+                <p>You are about to update database!</p>
                 <div class="mb-3">
-                    <label for="trace_id">Trace ID</label><br>
-                    <input autocomplete="off" autofocus class="form-control mx-auto w-auto" id="trace_id" name="trace_id" placeholder="ID..." type="text" value="" hidden><br><br>
+                    <label for="trace_id_dispay_only">Trace ID# to be updated</label><br>
+                    <input autocomplete="off" autofocus class="form-control mx-auto w-auto" id="trace_id_dispay_only" name="trace_id_dispay_only" placeholder="ID..." type="text" value="" disabled><br><br>
+                    <input autocomplete="off" autofocus class="form-control mx-auto w-auto" id="trace_id" name="trace_id" placeholder="ID..." type="text" value="" hidden>
                     
                     <label for="model_">Model (aka. S440)</label><br>
                     <input autocomplete="off" autofocus class="form-control mx-auto w-auto" id="model_" name="model_" placeholder="Model" type="text" value="" required><br><br>
@@ -359,6 +361,7 @@ th {text-align: left;}
         //console.log(session_results_table)
         //modalBodyInput.value = session_results_table[recipient].model
         document.getElementById("trace_id").value = session_results_table[recipient].id
+        document.getElementById("trace_id_dispay_only").value = session_results_table[recipient].id
         document.getElementById("model_").value = session_results_table[recipient].model
         document.getElementById("layout_").value = session_results_table[recipient].layout
         document.getElementById('potted_').checked = session_results_table[recipient].is_potted
