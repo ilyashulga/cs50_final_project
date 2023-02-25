@@ -92,6 +92,7 @@ def generate_multiple_graphs(session_results_table, session_folder, session_type
         graph_title = 'Conducted Emission'
         y_axis_units = 'dBuV'
     elif session_type[0]['type'] == 'Loop_Antenna':
+        # Later will need to add Limits for Loop Antenna type tests
         graph_title = 'LF Radiated Emission (Loop Antenna)'
         y_axis_units = 'dBuA/m'
     if session_results_table:
