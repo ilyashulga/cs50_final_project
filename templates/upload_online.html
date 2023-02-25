@@ -163,38 +163,49 @@
                 <div id="session_results_table_div" data-my-variable="{{ session_results_table }}"></div>
                 <p>Please, double check all data is correct before submitting. You are updating database!</p>
                 <div class="mb-3">
+                    <label for="trace_id">Trace ID</label><br>
+                    <input autocomplete="off" autofocus class="form-control mx-auto w-auto" id="trace_id" name="trace_id" placeholder="ID..." type="text" value="" hidden><br><br>
+                    
                     <label for="model_">Model (aka. S440)</label><br>
                     <input autocomplete="off" autofocus class="form-control mx-auto w-auto" id="model_" name="model_" placeholder="Model" type="text" value="" required><br><br>
+                    
                     <label for="layout_">Layout / AP Level / AS Level</label><br>
                     <input autocomplete="off" autofocus class="form-control mx-auto w-auto" id="layout_" name="layout_" placeholder="Layout" type="text" required value="" ><br><br>
+                    
                     <label for="potted_"> Unit is potted</label>
                     <input type="checkbox" id="potted_" name="potted_" value="potted"><br>
-                    <label for="ol_">Open Loop</label>
-                    <input type="radio" id="ol_" name="cl_ol" value="open_loop" onclick="send('ol_', 'dc', 'mode', 'i_lim_ps')"  ><br>
-                    <label for="cl_">MPPT   </label>
-                    <input type="radio" id="cl_" name="cl_ol" value="close_loop" onclick="send('cl_', 'dc', 'mode', 'i_lim_ps')"><br>
                     
-
+                    <label for="ol_">Open Loop</label>
+                    <input type="radio" id="ol_" name="cl_ol" value="ol"><br>
+                    
+                    <label for="cl_">MPPT   </label>
+                    <input type="radio" id="cl_" name="cl_ol" value="cl"><br>
     
                     <label for="power_">Power [W]</label><br>
-                    <input autocomplete="off" autofocus class="form-control mx-auto w-auto" min=1 max=2000 id="power_" name="power_" placeholder="Power (Watts)" type="number" step="any" value="" required><br><br>
+                    <input autocomplete="off" autofocus class="form-control mx-auto w-auto" min=0 max=2000 id="power_" name="power_" placeholder="Power (Watts)" type="number" step="any" value="" required><br><br>
+                    
                     <label for="v_in">Input Voltage [V]</label><br>
-                    <input autocomplete="off" autofocus class="form-control mx-auto w-auto" min=8 max=150 id="v_in" name="v_in" placeholder="Vin (Volt)" type="number" step="any" value="" required><br><br>
+                    <input autocomplete="off" autofocus class="form-control mx-auto w-auto" min=0 max=150 id="v_in" name="v_in" placeholder="Vin (Volt)" type="number" step="any" value="" required><br><br>
+                    
                     <label for="v_out">Output Voltage [V]</label><br>
-                    <input autocomplete="off" autofocus class="form-control mx-auto w-auto" min=8 max=150 id="v_out" name="v_out" placeholder="Vout (Volt)" type="number" step="any" value="" required><br><br>
+                    <input autocomplete="off" autofocus class="form-control mx-auto w-auto" min=0 max=150 id="v_out" name="v_out" placeholder="Vout (Volt)" type="number" step="any" value="" required><br><br>
+                    
                     <label for="i_in">Input Current [A]</label><br>
-                    <input autocomplete="off" autofocus class="form-control mx-auto w-auto" min=0.1 max=20 id="i_in" name="i_in" placeholder="Iin (A)" type="number" step="any" value="" required><br><br>
+                    <input autocomplete="off" autofocus class="form-control mx-auto w-auto" min=0 max=20 id="i_in" name="i_in" placeholder="Iin (A)" type="number" step="any" value="" required><br><br>
+                    
                     <label for="i_out">Output current [A]</label><br>
-                    <input autocomplete="off" autofocus class="form-control mx-auto w-auto" min=0.1 max=30 id="i_out" name="i_out" placeholder="Iout (A)" type="number" step="any" value="" required><br><br>
+                    <input autocomplete="off" autofocus class="form-control mx-auto w-auto" min=0 max=30 id="i_out" name="i_out" placeholder="Iout (A)" type="number" step="any" value="" required><br><br>
+                    
                     <label for="dc_">Duty Cycle [0-1]</label><br>
-                    <input autocomplete="off" autofocus class="form-control mx-auto w-auto" min=0.01 max=1 id="dc_" name="dc_" placeholder="Duty Cycle (%)" type="number" step="any" required><br><br>
+                    <input autocomplete="off" autofocus class="form-control mx-auto w-auto" min=0 max=1 id="dc_" name="dc_" placeholder="Duty Cycle (%)" type="number" step="any" required><br><br>
+                    
                     <label for="mode_">Chose operating mode:</label><br>
                         <select name="mode_" id="mode_" value="" not empty>
                             <option value="Buck">Buck</option>
                             <option value="Boost">Boost</option>
-                            <!-- <option value="Buck_Boost">Buck-Boost</option>
+                            <option value="Buck_Boost">Buck-Boost</option>
                             <option value="Do_Nothing">Do Nothing</option>
-                            <option value="Safety">Safety</option> -->
+                            <option value="Safety">Safety</option>
                         </select>
                     <br><br>
                     <label for="comment_">Comments</label><br>
@@ -347,7 +358,7 @@ th {text-align: left;}
         
         //console.log(session_results_table)
         //modalBodyInput.value = session_results_table[recipient].model
-        
+        document.getElementById("trace_id").value = session_results_table[recipient].id
         document.getElementById("model_").value = session_results_table[recipient].model
         document.getElementById("layout_").value = session_results_table[recipient].layout
         document.getElementById('potted_').checked = session_results_table[recipient].is_potted

@@ -688,6 +688,53 @@ def toggle_final():
             flash("Can't set final flag")
     return redirect("/upload_online")
 
+@app.route('/update_database', methods=['GET', 'POST'])
+@login_required
+def update_database():
+    if request.method == "POST":
+        #is_final = int(db.execute("SELECT is_final FROM graphs WHERE id=?", request.form.get("toggle"))[0]["is_final"])
+        #print(is_final)
+        data_to_update = {
+                "trace_id": request.form.get("trace_id"),
+                "model": request.form.get("model_"),
+                "layout": request.form.get("layout_"),
+                "is_potted": 1 if request.form.get("potted_")=="potted" else 0,
+                "is_cl": 1 if request.form.get("cl_ol")=="cl" else 0,
+                "power": float(request.form.get("power_")),
+                "v_in": float(request.form.get("v_in")),
+                "v_out": float(request.form.get("v_out")),
+                "i_in": float(request.form.get("i_in")),
+                "i_out": float(request.form.get("i_out")),
+                "dc": float(request.form.get("dc_")),
+                "mode": request.form.get("mode_"),
+                "comment": request.form.get("comment_")
+            }
+        
+        original_data = db.execute("SELECT * FROM graphs WHERE id=?", data_to_update['trace_id'])
+        
+        try:
+            #db.execute("UPDATE graphs SET model = data_to_update['model'], layout = data_to_update['layout'], is_potted = data_to_update['is_potted'], is_cl = data_to_update['is_cl'],  power = data_to_update['power'], v_in = data_to_update['v_in'], v_out = data_to_update['v_out'], i_in = data_to_update['i_in'], i_load = data_to_update['i_out'], dc = data_to_update['dc'], mode = data_to_update['mode'], comment = data_to_update['comment'] WHERE id=?", data_to_update['trace_id'])
+            #db.execute("UPDATE graphs SET (model, layout, is_potted, is_cl,  power, v_in, v_out, i_in, i_load, dc, mode, comment) VALUES(?,?,?,?,?,?,?,?,?,?,?,?) WHERE id=?", data_to_update['model'], data_to_update['layout'], data_to_update['is_potted'], data_to_update['is_cl'], data_to_update['power'], data_to_update['v_in'], data_to_update['v_out'], data_to_update['i_in'], data_to_update['i_out'], data_to_update['dc'], data_to_update['mode'], data_to_update['comment'], data_to_update['trace_id'])
+            db.execute("UPDATE graphs SET model=? WHERE id=?", data_to_update['model'], data_to_update['trace_id'])
+            db.execute("UPDATE graphs SET layout=? WHERE id=?", data_to_update['layout'], data_to_update['trace_id'])
+            db.execute("UPDATE graphs SET is_potted=? WHERE id=?", data_to_update['is_potted'], data_to_update['trace_id'])
+            db.execute("UPDATE graphs SET is_cl=? WHERE id=?", data_to_update['is_cl'], data_to_update['trace_id'])
+            db.execute("UPDATE graphs SET power=? WHERE id=?", data_to_update['power'], data_to_update['trace_id'])
+            db.execute("UPDATE graphs SET v_in=? WHERE id=?", data_to_update['v_in'], data_to_update['trace_id'])
+            db.execute("UPDATE graphs SET v_out=? WHERE id=?", data_to_update['v_out'], data_to_update['trace_id'])
+            db.execute("UPDATE graphs SET i_in=? WHERE id=?", data_to_update['i_in'], data_to_update['trace_id'])
+            db.execute("UPDATE graphs SET i_load=? WHERE id=?", data_to_update['i_out'], data_to_update['trace_id'])
+            db.execute("UPDATE graphs SET dc=? WHERE id=?", data_to_update['dc'], data_to_update['trace_id'])
+            db.execute("UPDATE graphs SET mode=? WHERE id=?", data_to_update['mode'], data_to_update['trace_id'])
+            db.execute("UPDATE graphs SET comment=? WHERE id=?", data_to_update['comment'], data_to_update['trace_id'])
+
+            flash("Successfully updated trace #" + data_to_update['trace_id'] +" description in database!")
+        except:
+            flash("Can't update database, please contact Eyal/Ilya")
+        #print(data_to_update)
+        #print(db.execute("SELECT * FROM graphs WHERE id=?", data_to_update['trace_id']))
+    return redirect("/upload_online")
+
 @app.route('/delete_item', methods=['GET', 'POST'])
 @login_required
 def delete_item():
