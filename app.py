@@ -254,7 +254,7 @@ def upload_online(reqPath):
             if curr_wp["v_out"] > 0:
                 curr_wp["power_in"] = pow(curr_wp["v_out"], 2) / curr_wp["r_load"] / curr_wp["eff"]
                 curr_wp["i_out"] = curr_wp["v_out"] / curr_wp["r_load"]
-                curr_wp["i_in"] = curr_wp["power_in"] / curr_wp["v_out"]
+                curr_wp["i_in"] = curr_wp["power_in"] / curr_wp["v_ps"]
             curr_wp["v_in"] = curr_wp["v_ps"]
         elif request.form['cl_ol'] == 'safety':
             curr_wp["v_in"] = curr_wp["v_ps"]
@@ -763,7 +763,7 @@ def download(filename):
 
 
 if __name__ == '__main__':
-    #app.run(host="0.0.0.0")
-    app.run(port=8051, debug=True)
+    app.run(host="0.0.0.0")
+    #app.run(port=8051, debug=True)
 
     #app.run(host="0.0.0.0", debug=True)
