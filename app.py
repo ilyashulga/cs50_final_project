@@ -432,9 +432,14 @@ def upload_online(reqPath):
     except:
         session_type = 'none'
         flash("Error in reading session type from database")
+    try:
+        session_lab = db.execute("SELECT lab FROM sessions WHERE id=?", session_id)
+    except:
+        session_lab = 'none'
+        flash("Error in reading session facility from database")
     
     # Generate JSON graph from current session files object
-    graph1JSON = generate_multiple_graphs(session_results_table, os.path.join(os.getcwd(), session_folder), session_type)
+    graph1JSON = generate_multiple_graphs(session_results_table, os.path.join(os.getcwd(), session_folder), session_type, session_lab)
     return render_template("upload_online.html", graph1JSON=graph1JSON, data={'files': fileObjs,
                                                  'parentFolder': parentFolderPath}, curr_wp=session["curr_wp"], session_results_table=session_results_table, enumerate=enumerate)
 
@@ -763,7 +768,7 @@ def download(filename):
 
 
 if __name__ == '__main__':
-    #app.run(host="0.0.0.0")
-    app.run(port=8051, debug=True)
+    app.run(host="0.0.0.0")
+    #app.run(port=8053, debug=True)
 
     #app.run(host="0.0.0.0", debug=True)

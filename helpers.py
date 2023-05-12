@@ -57,10 +57,10 @@ def generate_graph(df, graph_title):
 
     return graphJSON
 
-def generate_multiple_graphs(session_results_table, session_folder, session_type):
+def generate_multiple_graphs(session_results_table, session_folder, session_type, session_lab):
     """Generate multiple lines chart from csv files in folder location"""
     fig = go.Figure()
-    
+    #print (session_type)
     #print(session_type[0]['type'])
     if session_type[0]['type'] == 'RE':
         # Read Limits.csv content with pandas into dataframe and add to graphs figure (RE Limits)
@@ -103,12 +103,17 @@ def generate_multiple_graphs(session_results_table, session_folder, session_type
             # Read each csv content with pandas into dataframe starting from row 18 (otherwise pandas can't read properly the data)
             if result["filename"].endswith('.csv'):
                 try:
-                    df = pd.read_csv(os.path.join(session_folder, result["filename"]), skiprows=18)
+                    #print(session_lab[0]['lab'])
+                    df = pd.read_csv(os.path.join(session_folder, result["filename"]), skiprows=(45 if session_lab[0]['lab'] == '-1 Floor HaMada' else 18))
+                    #print(df.head())
                 except:
                     return apology("Error in reading CSV files", 400)
                 #print(df.head())
                 # Change column names in dataframe to more intuitive
-                df.columns = ['Frequency[MHz]','Max(Ver,Hor)', 'Ver', 'Hor']
+                try: 
+                    df.columns = ['Frequency[MHz]','Max(Ver,Hor)', 'Ver', 'Hor','','',''] # Naming in case of data has 7 rows
+                except:
+                    df.columns = ['Frequency[MHz]','Max(Ver,Hor)', 'Ver', 'Hor'] # Naming in case of data has 4 rows
                 # Iterate over each file's rows and make required calculations/substitutions
                 for row in range(len(df)):
                     df.at[row,'Max(Ver,Hor)'] = max(df.at[row,'Hor'], df.at[row,'Ver'])
