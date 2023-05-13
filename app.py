@@ -73,11 +73,19 @@ def index():
 @login_required
 def upload_online(reqPath):
     """GUI for adding plots one-by-one"""
+
     # Check if there is any unclosed test session for current user, if none - render a new session page
     try:
         session_is_open = db.execute("SELECT is_open FROM sessions WHERE is_open=1 AND user_id=?", session["user_id"])[0]["is_open"]
     except:
-        return render_template("new_session.html", user_sessions_table=db.execute("SELECT * FROM sessions WHERE user_id=?", session["user_id"]), enumerate=enumerate)
+        # Block below is converting SQLite3 query to JSON format in order to pass it to the page renderer and being able to use it easily to prefill session data in EDIT functuin
+        # Read user's session table from database
+        user_sessions_table = db.execute("SELECT * FROM sessions WHERE user_id=?", session["user_id"]) # user_sessions_table is passed to the renderer as well for proper session table display on upload_online page
+        # Convert the list of dictionaries to a JSON object
+        json_user_sessions_table = json.dumps(user_sessions_table)
+        # Print or use the JSON data as needed
+        #print(json_user_sessions_table)
+        return render_template("new_session.html", user_sessions_table=user_sessions_table, json_user_sessions_table=json_user_sessions_table, enumerate=enumerate)
     session_folder = db.execute("SELECT folder FROM sessions WHERE user_id=? AND is_open=1", session["user_id"])[0]["folder"]
     # TODO Check possible bug when if the database is transferred to another server or folder - will session_folder be accessible? Need to make sure what is stored in database is relative to the app.py folder and not absolute pass
     session_id = db.execute("SELECT id FROM sessions WHERE user_id=? and is_open=1", session["user_id"])[0]["id"]
@@ -702,6 +710,7 @@ def toggle_final():
             flash("Can't set final flag")
     return redirect("/upload_online")
 
+# Update trance details in database
 @app.route('/update_database', methods=['GET', 'POST'])
 @login_required
 def update_database():
@@ -749,6 +758,58 @@ def update_database():
         #print(db.execute("SELECT * FROM graphs WHERE id=?", data_to_update['trace_id']))
     return redirect("/upload_online")
 
+@app.route('/update_sessions_database', methods=['GET', 'POST'])
+@login_required
+def update_session():
+    if request.method == "POST":
+        #is_final = int(db.execute("SELECT is_final FROM graphs WHERE id=?", request.form.get("toggle"))[0]["is_final"])
+        #print(is_final)
+        
+        # Database-consistant Clamp naming convention  
+        if request.form.get("clamp_in_") and request.form.get("clamp_out_"):
+            clamp = "In and Out"
+        elif request.form.get("clamp_in_"):
+            clamp = "In Only"
+        elif request.form.get("clamp_out_"):
+            clamp = "Out Only"
+        else:
+            clamp = 'Not Specified'
+        
+        
+        data_to_update = {
+                "id": int(request.form.get("session_id")),
+                "lab": request.form.get("lab_"),
+                "type": request.form.get("type_"),
+                "name": request.form.get("session_name_"),
+                "description": request.form.get("session_description_"),
+                "cables_orient": 'Not Specified' if request.form.get("cables_orientation")==None else request.form.get("cables_orientation"),
+                "clamps": clamp,
+                "cmc_box": 'Yes' if request.form.get("cmc_box_") else 0,
+                "beads": 'Not Specified' if request.form.get("beads_")==None else request.form.get("beads_"),
+                "load_type": 'Not Specified' if request.form.get("load")==None else request.form.get("load"),
+                "attenuator": request.form.get("6dB_"),
+                "setup_comment": 'Not Specified' if request.form.get("comment_")==None else request.form.get("comment_")
+            }
+        
+        #print(data_to_update)
+        #original_data = db.execute("SELECT * FROM sessions WHERE id=?", data_to_update['id'])
+        #print(original_data)
+        
+        
+        try:
+            for key, value in data_to_update.items():
+                db.execute(f"UPDATE sessions SET {key}=? WHERE id=?", value, data_to_update['id'])
+            flash("Successfully updated session #" + str(data_to_update['id']) +" description in database!")
+        except:
+            flash("Can't update database, please contact Eyal/Ilya")
+        
+
+
+        #print(data_to_update)
+        #print(db.execute("SELECT * FROM graphs WHERE id=?", data_to_update['trace_id']))
+    return redirect("/upload_online")
+
+
 @app.route('/delete_item', methods=['GET', 'POST'])
 @login_required
 def delete_item():
@@ -759,6 +820,17 @@ def delete_item():
         db.execute("DELETE FROM graphs WHERE id=?", request.form.get("delete"))
     return redirect("/upload_online")
 
+
+#@app.route('/delete_session', methods=['GET', 'POST'])
+#@login_required
+#def delete_item():
+#    if request.method == "POST":
+#        session_folder = db.execute("SELECT folder FROM sessions WHERE id=?", session["id"])[0]['folder']
+#        file_name = db.execute("SELECT filename FROM graphs WHERE id=?", request.form.get("delete"))[0]['filename']
+#        os.remove(os.path.join(os.getcwd(), session_folder, file_name))
+#        db.execute("DELETE FROM graphs WHERE id=?", request.form.get("delete"))
+#    return redirect("/upload_online")
+
 @app.route('/static/<path:filename>', methods=['GET', 'POST'])
 @login_required
 def download(filename):
@@ -768,7 +840,7 @@ def download(filename):
 
 
 if __name__ == '__main__':
-    app.run(host="0.0.0.0")
-    #app.run(port=8051, debug=True)
+    #app.run(host="0.0.0.0")
+    app.run(port=5001, debug=True)
 
     #app.run(host="0.0.0.0", debug=True)

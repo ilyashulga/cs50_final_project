@@ -99,6 +99,7 @@
                 <th>Unique ID</th>
                 <th>Setup</th>
                 <th>Resume Session</th>
+                <th>Edit</th>
             </tr>
         </thead>
         <tbody>
@@ -117,8 +118,191 @@
                         <button name="resume_session" value="{{ row['id'] }}" class="btn btn-primary" type="submit">Resume</button>
                     </form>
                 </td>
+                <td>
+                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#edit_data_row" data-bs-whatever="{{ index }}">Edit</button>
+                </td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
+
+    <div class="modal fade" id="edit_data_row" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="exampleModalLabel">New message</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <br>
+                <form method=post enctype=multipart/form-data action="/update_sessions_database">
+                    <div id="user_sessions_table_div" data-my-variable="{{ json_user_sessions_table }}"></div>
+                    <p>Please, double check all data is correct before submitting.</p>
+                    <p>You are about to update database!</p>
+                    <div class="mb-3">
+                        <label for="session_id_dispay_only">Session ID# to be updated</label><br>
+                        <input autocomplete="off" autofocus class="form-control mx-auto w-auto" id="session_id_dispay_only" name="session_id_dispay_only" placeholder="ID..." type="text" value="" disabled><br><br>
+                        <input autocomplete="off" autofocus class="form-control mx-auto w-auto" id="session_id" name="session_id" placeholder="ID..." type="text" value="" hidden>
+                        <label for="lab_">Laboratory: </label>
+                        <select name="lab_" id="lab_" value="">
+                            <option value="Modiin">Modiin EMC Lab</option>
+                            <option value="-1 Floor HaMada">-1 Floor Chamber</option>
+                            <option value="Qualitek">Qualitek EMC Lab</option>
+                        </select><br><br>
+                        <label for="type_">Test type: </label>
+                        <select name="type_" id="type_" value="">
+                            <option value="RE">Radiated Emission</option>
+                            <option value="CE">Conducted Emission</option>
+                            <option value="Loop_Antenna">Loop Antenna</option>
+                        </select><br><br>
+                        <div class="mb-4">
+                            <input autocomplete="off" autofocus class="form-control mx-auto w-auto" id="session_name_" name="session_name_" placeholder="Session name" type="text">
+                        </div>
+                        <div class="mb-4">
+                            <input autocomplete="off" autofocus class="form-control mx-auto w-auto" id="session_description_" name="session_description_" placeholder="Session description" size="30" type="text" style="float: center;">
+                        </div>
+                        <h3>Setup Details</h3>
+                        <div class="mb-4">
+                            <h6>Cable orientation:</h6>
+                            <label for="pi_">PI (form of Greek PI letter)</label>
+                            <input type="radio" id="pi_" name="cables_orientation" value="pi" />
+                        <br>
+                            <label for="i_">I (straight down)</label>
+                            <input type="radio" id="i_" name="cables_orientation" value="i" />
+                        </div><br>
+                
+                        <div class="mb-4">
+                            <h6>Filtering:</h6>
+                            <label for="clamp_in_"> Clamp on input </label>
+                            <input type="checkbox" id="clamp_in_" name="clamp_in_" value="clamp_in" />
+                        <br>
+                            <label for="clamp_out_"> Clamp on output </label>
+                            <input type="checkbox" id="clamp_out_" name="clamp_out_" value="clamp_out"><br>
+                            <label for="cmc_box_"> CMC Box </label>
+                            <input type="checkbox" id="cmc_box_" name="cmc_box_" value="Yes"><br>
+                        </div><br>
+                        <div class="mb-4">
+                            <label for="beads_">Additional beads on cables under the chamber floor? (please specify location and bead P/N if any)</label>
+                            <input type="text" autocomplete="off" autofocus class="form-control mx-auto w-auto" id="beads_" name="beads_" placeholder="Location and Beads P/N"/>
+                        </div><br>
+                
+                        <div class="mb-4">
+                            
+                
+                            <h6>Load type:</h6>
+                            <label for="r_">Discrete Resistors</label>
+                            <input type="radio" id="r_" name="load" value="Discrete Resistors" />
+                            <br>
+                            <label for="rlb_">Resistive Load Bank</label>
+                            <input type="radio" id="rlb_" name="load" value="Resistive Load Bank" />
+                            <br>
+                            <label for="el_">Electronic Load</label>
+                            <input type="radio" id="el_" name="load" value="Electronic Load" />
+                            <br><br>
+                            <label for="6dB_"> 6dB attenuator </label>
+                            <input type="checkbox" id="6dB_" name="6dB_" value="6dB"/>
+                        </div><br>
+                        <div class="mb-4">
+                            <label for="comment_">Additional Comments</label>
+                            <input type="text" autocomplete="off" autofocus class="form-control mx-auto w-auto" id="comment_" name="comment_" placeholder="What's special about this setup..." size="30"/>
+                        </div><br>
+                
+                
+                <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <!-- <button type="button" class="btn btn-primary" onclick="return confirm('Are you sure you want to update database?')">Update</button> -->
+                <input type=submit class="btn btn-primary" value="Update" onclick="return confirm('Are you sure you want to update database?')">
+                </div>
+                </form>
+          </div>
+        </div>
+      </div>
+<script>
+    //---------------------Modal for EDIT-----------------------------
+    var exampleModal = document.getElementById('edit_data_row')
+    exampleModal.addEventListener('show.bs.modal', function (event) {
+    // Button that triggered the modal
+    var button = event.relatedTarget
+    // Extract info from data-bs-* attributes
+    var recipient = button.getAttribute('data-bs-whatever')
+    // Update the modal's content.
+    var modalTitle = exampleModal.querySelector('.modal-title')
+
+    modalTitle.textContent = 'Edit Row #' + recipient + ' data'
+
+    var user_sessions_table_div = document.getElementById('user_sessions_table_div')    
+    // Parse the JSON string into a JavaScript object, need to replace single quotes to double quotes as well
+    var jsonObject = JSON.parse(user_sessions_table_div.dataset.myVariable)
+    
+    document.getElementById("session_id").value = jsonObject[recipient].id
+    document.getElementById("session_id_dispay_only").value = jsonObject[recipient].id
+    document.getElementById("lab_").value = jsonObject[recipient].lab
+    document.getElementById("type_").value = jsonObject[recipient].type
+    document.getElementById("session_name_").value = jsonObject[recipient].name
+    document.getElementById("session_description_").value = jsonObject[recipient].description
+    //console.log(jsonObject[recipient].attenuator)
+    if(jsonObject[recipient].cables_orient == 'pi'){
+            document.getElementById('pi_').checked = 1
+        }
+        else if (jsonObject[recipient].cables_orient == 'i') document.getElementById('i_').checked = 1
+        else {
+            document.getElementById('pi_').checked = 0
+            document.getElementById('i_').checked = 0
+        }
+      
+    if(jsonObject[recipient].cmc_box == 'Yes'){
+            document.getElementById('cmc_box_').checked = 1
+        }
+        else document.getElementById('cmc_box_').checked = 0
+    
+    if(jsonObject[recipient].clamps == 'In and Out'){
+            document.getElementById('clamp_in_').checked = 1
+            document.getElementById('clamp_out_').checked = 1
+        }
+        else if(jsonObject[recipient].clamps == 'In Only'){
+            document.getElementById('clamp_in_').checked = 1
+            document.getElementById('clamp_out_').checked = 0
+        }
+        else if(jsonObject[recipient].clamps == 'Out Only'){
+            document.getElementById('clamp_in_').checked = 0
+            document.getElementById('clamp_out_').checked = 1
+        }
+        else {
+            document.getElementById('clamp_in_').checked = 0
+            document.getElementById('clamp_out_').checked = 0
+        }
+    
+    document.getElementById('beads_').value = jsonObject[recipient].beads
+    
+    if(jsonObject[recipient].load_type == 'Electronic Load'){
+            document.getElementById('r_').checked = 0
+            document.getElementById('rlb_').checked = 0
+            document.getElementById('el_').checked = 1
+        }
+        else if (jsonObject[recipient].load_type == 'Discrete Resistors'){
+            document.getElementById('r_').checked = 1
+            document.getElementById('rlb_').checked = 0
+            document.getElementById('el_').checked = 0
+        }
+        else if (jsonObject[recipient].load_type == 'Resistive Load Bank'){
+            document.getElementById('r_').checked = 0
+            document.getElementById('rlb_').checked = 1
+            document.getElementById('el_').checked = 0
+        }
+        else {
+            document.getElementById('r_').checked = 0
+            document.getElementById('rlb_').checked = 0
+            document.getElementById('el_').checked = 0
+        }
+    if(jsonObject[recipient].attenuator == '6dB'){
+            document.getElementById('6dB_').checked = 1
+        }
+        else document.getElementById('6dB_').checked = 0
+      //layout.value = session_results_table[recipient].layout
+      document.getElementById('comment_').value = jsonObject[recipient].setup_comment
+      //modelInput.value = session_results_table[recipient]['model']
+      //modelInput.value = "1"
+      })
+      //---------------------END of Modal for EDIT-----------------------------
+</script>   
 {% endblock %}
