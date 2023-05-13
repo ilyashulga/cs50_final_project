@@ -18,7 +18,7 @@ import datetime
 import requests
 
 
-from helpers import apology, login_required, generate_graph, getIconClassForFilename, generate_multiple_graphs, open_connection, close_connection, get_csv_from_spectrum
+from helpers import apology, login_required, generate_graph, getIconClassForFilename, generate_multiple_graphs, open_connection, close_connection, get_csv_from_spectrum, delete_folder
 
 """ OPTION: connect to spectrum via VISA
 # Configure Spectrum Analyzer Keysight
@@ -821,15 +821,26 @@ def delete_item():
     return redirect("/upload_online")
 
 
-#@app.route('/delete_session', methods=['GET', 'POST'])
-#@login_required
-#def delete_item():
-#    if request.method == "POST":
-#        session_folder = db.execute("SELECT folder FROM sessions WHERE id=?", session["id"])[0]['folder']
-#        file_name = db.execute("SELECT filename FROM graphs WHERE id=?", request.form.get("delete"))[0]['filename']
-#        os.remove(os.path.join(os.getcwd(), session_folder, file_name))
-#        db.execute("DELETE FROM graphs WHERE id=?", request.form.get("delete"))
-#    return redirect("/upload_online")
+@app.route('/delete_session', methods=['GET', 'POST'])
+@login_required
+def delete_session():
+    if request.method == "POST":
+        print(request.form.get("delete_session"))
+        session_folder = db.execute("SELECT folder FROM sessions WHERE id=?", request.form.get("delete_session"))[0]['folder']
+        print(session_folder)
+        try:
+            db.execute("DELETE FROM sessions WHERE id=?", request.form.get("delete_session"))
+        except:
+            flash("Can't delete session from db, please contact Eyal/Ilya")
+        try:
+            delete_folder(session_folder)
+            flash("Successfully deleted session #" + str(request.form.get("delete_session")) +" and it's contents!")
+        except:
+            flash("Can't delete folder, please contact Eyal/Ilya")
+        #file_name = db.execute("SELECT filename FROM graphs WHERE id=?", request.form.get("delete"))[0]['filename']
+        #os.remove(os.path.join(os.getcwd(), session_folder, file_name))
+        
+    return redirect("/upload_online")
 
 @app.route('/static/<path:filename>', methods=['GET', 'POST'])
 @login_required

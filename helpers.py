@@ -1,7 +1,7 @@
 import os
 import urllib.parse
 
-from flask import redirect, render_template, request, session
+from flask import redirect, render_template, request, session, safe_join
 from functools import wraps
 import json
 import pandas as pd
@@ -191,6 +191,18 @@ def close_connection(rm, inst):
     rm.close()
     inst.close()
 
+def delete_folder(folder_path):
+    absPath = safe_join(os.getcwd(), folder_path)
+    # Iterate over the files and subdirectories in the folder
+    for filename in os.listdir(absPath):
+        file_path = os.path.join(absPath, filename)
+    
+        # Check if the item is a file
+        if os.path.isfile(file_path):
+            # Delete the file
+            os.remove(file_path)
+
+    os.rmdir(absPath)
 
 def get_csv_from_spectrum(inst_ip):
     #for ping in range(1,255):
