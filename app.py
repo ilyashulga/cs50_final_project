@@ -641,8 +641,15 @@ def create_test_session_folder():
     #basedir = os.path.abspath(os.path.dirname(__file__))
     
     # Get username from SQL Database based on session user_id
-    username = db.execute("SELECT username FROM users WHERE id=?", session["user_id"])[0]["username"]
-    
+    try:
+        username = db.execute("SELECT username FROM users WHERE id=?", session["user_id"])[0]["username"]
+    except:
+        apology("Can't read user id", 400)
+
+    try:
+        session_id = db.execute("SELECT id FROM sessions WHERE is_open=1 AND user_id=?", session['user_id'])[0]['id']
+    except:
+        apology("Can't read session id", 400)
     # Get user_folder absolute address
     user_folder = os.path.join(app.config['UPLOAD_FOLDER'], username)
     
@@ -651,8 +658,8 @@ def create_test_session_folder():
         os.makedirs(user_folder)
     
     # Get session_folder absolute address
-    session_folder = os.path.join(app.config['UPLOAD_FOLDER'], username, session["session"] + "_" + datetime.datetime.now().strftime("%d_%m_%Y_%H_%M_%S"))
-    
+    #session_folder = os.path.join(app.config['UPLOAD_FOLDER'], username, session["session"] + "_" + datetime.datetime.now().strftime("%d_%m_%Y_%H_%M_%S"))
+    session_folder = os.path.join(app.config['UPLOAD_FOLDER'], username, str(session_id))
     # Create a session folder inside private folder if not exists already
     if not os.path.exists(session_folder): 
         os.makedirs(session_folder)
@@ -825,9 +832,9 @@ def delete_item():
 @login_required
 def delete_session():
     if request.method == "POST":
-        print(request.form.get("delete_session"))
+        #print(request.form.get("delete_session"))
         session_folder = db.execute("SELECT folder FROM sessions WHERE id=?", request.form.get("delete_session"))[0]['folder']
-        print(session_folder)
+        #print(session_folder)
         try:
             db.execute("DELETE FROM sessions WHERE id=?", request.form.get("delete_session"))
         except:
