@@ -901,7 +901,7 @@ def calculate_scores():
                     #print("Enter second if")
                     try:
                         db.execute("INSERT INTO scores (graph_id,'30-1000MHz','30-60MHz','60-100MHz','100-200MHz','200-400MHz','400-1000MHz') VALUES(?, ?, ?, ?, ?, ?, ?)", int(dict['id']), float(dict['30-1000MHz_score']), float(dict['30-60MHz_score']), float(dict['60-100MHz_score']), float(dict['100-200MHz_score']), float(dict['200-400MHz_score']), float(dict['400-1000MHz_score']))
-                        flash("Added new scores to database")
+                        #flash("Added new scores to database")
                     except:
                         return apology("Can't add new scores in Database", 400)
             flash("Updated/added scores successfully")
