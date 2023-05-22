@@ -18,7 +18,7 @@ import datetime
 import requests
 
 
-from helpers import apology, login_required, generate_graph, getIconClassForFilename, generate_multiple_graphs, open_connection, close_connection, get_csv_from_spectrum, delete_folder
+from helpers import apology, login_required, generate_graph, getIconClassForFilename, generate_multiple_graphs, open_connection, close_connection, get_csv_from_spectrum, delete_folder, evaluate_scores
 
 """ OPTION: connect to spectrum via VISA
 # Configure Spectrum Analyzer Keysight
@@ -427,6 +427,13 @@ def upload_online(reqPath):
         session_results_table = db.execute("SELECT * FROM graphs WHERE session_id=?", session_id)
     except:
         session_results_table = {}
+    # Read session traces scores
+    session_scores_table = []
+    for dict in session_results_table:
+        try:
+            session_scores_table.append(db.execute("SELECT * FROM scores WHERE graph_id=?", dict["id"])[0])
+        except:
+            session_scores_table.append({})
     #print(session_results_table)
     # TODO add is_final flag (or leave final flag assesible from DASH)
     # TODO Consider plotting graphs only if button is pressed / V is marked on ALL/some graphs
@@ -445,11 +452,12 @@ def upload_online(reqPath):
     except:
         session_lab = 'none'
         flash("Error in reading session facility from database")
-    
+    #print(session_results_table)
+    #print(session_scores_table)
     # Generate JSON graph from current session files object
-    graph1JSON = generate_multiple_graphs(session_results_table, os.path.join(os.getcwd(), session_folder), session_type, session_lab)
+    graph1JSON = generate_multiple_graphs(session_results_table, os.path.join(os.getcwd(), session_folder), session_type, session_lab, session_scores_table)
     return render_template("upload_online.html", graph1JSON=graph1JSON, data={'files': fileObjs,
-                                                 'parentFolder': parentFolderPath}, curr_wp=session["curr_wp"], session_results_table=session_results_table, enumerate=enumerate)
+                                                 'parentFolder': parentFolderPath}, curr_wp=session["curr_wp"], session_results_table=session_results_table, enumerate=enumerate, session_scores_table=session_scores_table)
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -849,6 +857,66 @@ def delete_session():
         
     return redirect("/upload_online")
 
+@app.route('/calculate_scores', methods=['GET', 'POST'])
+@login_required
+def calculate_scores():
+    if request.method == "POST":
+        
+        # Read current session id
+        try:
+            session_type = db.execute("SELECT type FROM sessions WHERE user_id=? and is_open=1", session["user_id"])[0]["type"]
+            session_lab = db.execute("SELECT lab FROM sessions WHERE user_id=? and is_open=1", session["user_id"])[0]["lab"]
+        except:
+            return apology("Can't read from DB", 400)
+        #print(session_type)
+        if session_type == 'RE' and (session_lab == 'Modiin' or session_lab == 'Qualitek'):
+            session_id = db.execute("SELECT id FROM sessions WHERE user_id=? and is_open=1", session["user_id"])[0]["id"]
+            session_folder = db.execute("SELECT folder FROM sessions WHERE id=?", session_id)[0]["folder"]
+            
+            #print(session_id)
+            # Create list of dictionaries containing trace ids
+            session_traces = db.execute("SELECT id, filename FROM graphs WHERE session_id=?", session_id)
+            if not session_traces:
+                flash("Please add traces before executing calculation")
+                return redirect("/upload_online")
+            # Calculate scores for this IDs and add to list
+            try:
+                session_traces_ids_w_scores = evaluate_scores(session_traces, session_folder)
+            except:
+                flash("Invalid data")
+                return redirect("/upload_online")
+            for dict in session_traces_ids_w_scores:
+                if db.execute("SELECT * FROM scores WHERE graph_id=?", int(dict['id'])):
+                    try:
+                        #print("Enter first if")
+                        db.execute("UPDATE scores SET '30-1000MHz'=? WHERE graph_id=?", float(dict['30-1000MHz_score']), int(dict['id']))
+                        db.execute("UPDATE scores SET '30-60MHz'=? WHERE graph_id=?", float(dict['30-60MHz_score']), int(dict['id']))
+                        db.execute("UPDATE scores SET '60-100MHz'=? WHERE graph_id=?", float(dict['60-100MHz_score']), int(dict['id']))
+                        db.execute("UPDATE scores SET '100-200MHz'=? WHERE graph_id=?", float(dict['100-200MHz_score']), int(dict['id']))
+                        db.execute("UPDATE scores SET '200-400MHz'=? WHERE graph_id=?", float(dict['200-400MHz_score']), int(dict['id']))
+                        db.execute("UPDATE scores SET '400-1000MHz'=? WHERE graph_id=?", float(dict['400-1000MHz_score']), int(dict['id']))
+                    except:
+                        return apology("Can't update existing scores in Database", 400)
+                else:
+                    #print("Enter second if")
+                    try:
+                        db.execute("INSERT INTO scores (graph_id,'30-1000MHz','30-60MHz','60-100MHz','100-200MHz','200-400MHz','400-1000MHz') VALUES(?, ?, ?, ?, ?, ?, ?)", int(dict['id']), float(dict['30-1000MHz_score']), float(dict['30-60MHz_score']), float(dict['60-100MHz_score']), float(dict['100-200MHz_score']), float(dict['200-400MHz_score']), float(dict['400-1000MHz_score']))
+                        flash("Added new scores to database")
+                    except:
+                        return apology("Can't add new scores in Database", 400)
+            flash("Updated/added scores successfully")
+                #print(f"Session ID {dict['id']} has the following scores: Total Score -> {dict['30-1000MHz_score']}; 30-60MHz -> {dict['30-60MHz_score']}; 30-60MHz -> {dict['30-60MHz_score']}; 60-100MHz -> {dict['60-100MHz_score']}; 100-200MHz -> {dict['100-200MHz_score']}; 200-400MHz -> {dict['200-400MHz_score']}; 400-1000MHz -> {dict['400-1000MHz_score']}")
+        else:
+            return apology("Scores calculation is only supported in RE mode in Modiin and Qualitek currently", 400)
+        #add_scores_to_database()
+
+        #session_scores = db.execute("SELECT id, filename FROM graphs WHERE session_id=?", session_id)
+        #print(session_traces_ids_w_scores)
+
+        
+        
+    return redirect("/upload_online")
+
 @app.route('/static/<path:filename>', methods=['GET', 'POST'])
 @login_required
 def download(filename):
@@ -859,6 +927,6 @@ def download(filename):
 
 if __name__ == '__main__':
     #app.run(host="0.0.0.0")
-    app.run(port=5001, debug=True)
+    app.run(port=5002, debug=True)
 
     #app.run(host="0.0.0.0", debug=True)

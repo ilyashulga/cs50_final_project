@@ -11,6 +11,7 @@ import plotly.graph_objects as go
 from pathlib import Path
 import pyvisa
 import requests
+import math
 
 
 def apology(message, code=400):
@@ -57,7 +58,7 @@ def generate_graph(df, graph_title):
 
     return graphJSON
 
-def generate_multiple_graphs(session_results_table, session_folder, session_type, session_lab):
+def generate_multiple_graphs(session_results_table, session_folder, session_type, session_lab, session_scores_table):
     """Generate multiple lines chart from csv files in folder location"""
     fig = go.Figure()
     #print (session_type)
@@ -129,7 +130,11 @@ def generate_multiple_graphs(session_results_table, session_folder, session_type
             # create xy chart using plotly library
             if result["model"] != 'Noise Floor':
                 #graph_name = str(index) + "." + result["model"] + " " + ("Potted" if result["is_potted"] else "Not_Potted") + " " + result["layout"] + " " + result["comment"] + " " + result["mode"] + " " + ("CL" if result["is_cl"]==1 else "OL") + " Vin=" + str(result["v_in"]) + "[V]" + " Iout=" + str(result["i_load"]) + "[A]" + " DC=" + str(result["dc"]) + " P=" + str(result["power"]) + "[W]"
-                graph_name = str(index) + "." + result["model"] + " " + result["layout"] + " " + result["mode"] + " " + result["comment"] + " P=" + str(result["power"]) + "[W]"
+                try:
+                    score = "Score: " + str(session_scores_table[index]['30-1000MHz'])
+                except:
+                    score = ""
+                graph_name = str(index) + "." + score + " " + result["model"] + " " + result["layout"] + " " + result["mode"] + " " + result["comment"] + " P=" + str(result["power"]) + "[W]"
             else:
                 graph_name = str(index) + "." + result["model"] + " " + result["comment"]
             fig.add_trace(go.Scatter(x=df["Frequency[MHz]"], y=df["Max(Ver,Hor)"], name=graph_name, mode="lines", visible='legendonly'))    
@@ -226,3 +231,155 @@ def get_csv_from_spectrum(inst_ip):
         error = "http error:" + str(response.status_code)
         return "Can't reach instrument"
 
+def evaluate_scores(traces, session_folder):
+    #print(traces)
+    if traces:
+        for dict in traces:
+            
+            dict["30-60MHz_sum"] = 0
+            dict["30-60MHz_count"] = 0
+            dict["60-100MHz_sum"] = 0
+            dict["60-100MHz_count"] = 0
+            dict["100-200MHz_sum"] = 0
+            dict["100-200MHz_count"] = 0
+            dict["200-400MHz_sum"] = 0
+            dict["200-400MHz_count"] = 0
+            dict["400-1000MHz_sum"] = 0
+            dict["400-1000MHz_count"] = 0
+
+            if dict["filename"].endswith('.csv'):
+                try:
+                    df = pd.read_csv(os.path.join(session_folder, dict["filename"]), skiprows=18)
+                    # Change column names in dataframe to more intuitive
+                    df.columns = ['Frequency[MHz]','Max(Ver,Hor)', 'Ver', 'Hor'] # Naming in case of data has 4 rows
+                    #print(df.head())
+                except:
+                    df = pd.read_csv(os.path.join(session_folder, dict["filename"]), skiprows=45)
+                    # Change column names in dataframe to more intuitive
+                    df.columns = ['Frequency[MHz]','Max(Ver,Hor)', 'Ver', 'Hor','','',''] # Naming in case of data has 7 rows
+                    #print(df.head())
+                    
+                for row in range(len(df)):
+                    df.at[row,'Max(Ver,Hor)'] = max(df.at[row,'Hor'], df.at[row,'Ver'])
+                    df.at[row,'Frequency[MHz]'] = df.at[row,'Frequency[MHz]']/1000000
+                    if df.at[row,'Frequency[MHz]'] >= 30 and df.at[row,'Frequency[MHz]'] < 60:
+                        dict["30-60MHz_sum"] = dict["30-60MHz_sum"] + 10**(df.at[row,'Max(Ver,Hor)']/20)
+                        dict["30-60MHz_count"] = dict["30-60MHz_count"] + 1
+                    elif df.at[row,'Frequency[MHz]'] >= 60 and df.at[row,'Frequency[MHz]'] < 100:
+                        dict["60-100MHz_sum"] = dict["60-100MHz_sum"] + 10**(df.at[row,'Max(Ver,Hor)']/20)
+                        dict["60-100MHz_count"] = dict["60-100MHz_count"] + 1
+                    elif df.at[row,'Frequency[MHz]'] >= 100 and df.at[row,'Frequency[MHz]'] < 200:
+                        dict["100-200MHz_sum"] = dict["100-200MHz_sum"] + 10**(df.at[row,'Max(Ver,Hor)']/20)
+                        dict["100-200MHz_count"] = dict["100-200MHz_count"] + 1
+                    elif df.at[row,'Frequency[MHz]'] >= 200 and df.at[row,'Frequency[MHz]'] < 400:
+                        dict["200-400MHz_sum"] = dict["200-400MHz_sum"] + 10**(df.at[row,'Max(Ver,Hor)']/20)
+                        dict["200-400MHz_count"] = dict["200-400MHz_count"] + 1
+                    elif df.at[row,'Frequency[MHz]'] >= 400 and df.at[row,'Frequency[MHz]'] < 1000:
+                        dict["400-1000MHz_sum"] = dict["400-1000MHz_sum"] + 10**(df.at[row,'Max(Ver,Hor)']/20)
+                        dict["400-1000MHz_count"] = dict["400-1000MHz_count"] + 1
+                    
+                    
+                #print(df.head())
+            
+            dict["30-60MHz_AVG_uV"] = dict["30-60MHz_sum"] / dict["30-60MHz_count"]
+            dict["30-60MHz_AVG_dBuV"] = 20*math.log10(dict["30-60MHz_AVG_uV"])
+            dict["60-100MHz_AVG_uV"] = dict["60-100MHz_sum"] / dict["60-100MHz_count"]
+            dict["60-100MHz_AVG_dBuV"] = 20*math.log10(dict["60-100MHz_AVG_uV"])
+            dict["100-200MHz_AVG_uV"] = dict["100-200MHz_sum"] / dict["100-200MHz_count"]
+            dict["100-200MHz_AVG_dBuV"] = 20*math.log10(dict["100-200MHz_AVG_uV"])
+            dict["200-400MHz_AVG_uV"] = dict["200-400MHz_sum"] / dict["200-400MHz_count"]
+            dict["200-400MHz_AVG_dBuV"] = 20*math.log10(dict["200-400MHz_AVG_uV"])
+            dict["400-1000MHz_AVG_uV"] = dict["400-1000MHz_sum"] / dict["400-1000MHz_count"]
+            dict["400-1000MHz_AVG_dBuV"] = 20*math.log10(dict["400-1000MHz_AVG_uV"])
+            dict["30-1000MHz_AVG_uV"] = ( dict["30-60MHz_AVG_uV"] + dict["60-100MHz_AVG_uV"] + dict["100-200MHz_AVG_uV"] + dict["200-400MHz_AVG_uV"] + dict["400-1000MHz_AVG_uV"] ) / 5
+            #print(dict["400-1000MHz_sum"])
+            #print(dict["400-1000MHz_count"])
+            #print(dict['30-60MHz_AVG_uV'])
+            #print(dict['400-1000MHz_AVG_uV'])
+            #print(dict['30-60MHz_AVG_dBuV'])
+            #print(dict['400-1000MHz_AVG_dBuV'])
+        # Read Limits.csv content with pandas into dataframe and add to graphs figure (RE Limits)
+        try:
+            df = pd.read_csv(os.path.join(os.path.abspath(os.path.dirname(__file__)), "static", "Limits.csv"))
+            df.columns = ['Frequency[MHz]','CISPR11_RE_CLASS_B_Group_1', 'CISPR11_RE_CLASS_B_Group_1_Important', 'CISPR11_RE_CLASS_A_Group_1_up_to_20kVA']
+        except:
+            return apology("Error in reading limits.csv file", 400)
+        
+        #max_30_60MHz = max([d["30-60MHz_AVG_uV"] for d in traces])
+        #max_60_100MHz = max([d["60-100MHz_AVG_uV"] for d in traces])
+        #max_100_200MHz = max([d["100-200MHz_AVG_uV"] for d in traces])
+        #max_200_400MHz = max([d["200-400MHz_AVG_uV"] for d in traces])
+        #max_400_1000MHz = max([d["400-1000MHz_AVG_uV"] for d in traces])
+        #max_30_1000MHz = max([d["30-1000MHz_AVG_uV"] for d in traces])
+
+        max_limit = {
+                    "30-60MHz_sum": 0,
+                    "30-60MHz_count": 0,
+                    "30-60MHz_AVG_dBuV": 0,
+                    "60-100MHz_sum": 0,
+                    "60-100MHz_count": 0,
+                    "60-100MHz_AVG_dBuV": 0,
+                    "100-200MHz_sum": 0,
+                    "100-200MHz_count": 0,
+                    "100-200MHz_AVG_dBuV": 0,
+                    "200-400MHz_sum": 0,
+                    "200-400MHz_count": 0,
+                    "200-400MHz_AVG_dBuV": 0,
+                    "400-1000MHz_sum": 0,
+                    "400-1000MHz_count": 0,
+                    "200-400MHz_AVG_dBuV": 0,
+                    "30-1000MHz_sum": 0,
+                    "30-1000MHz_count": 0,
+                    "30-1000MHz_AVG_dBuV": 0
+                    }
+        for row in range(len(df)):
+            if df.at[row,'Frequency[MHz]'] >= 30 and df.at[row,'Frequency[MHz]'] < 60:
+                max_limit["30-60MHz_sum"] = max_limit["30-60MHz_sum"] + 10**(df.at[row,'CISPR11_RE_CLASS_B_Group_1']/20)
+                max_limit["30-60MHz_count"] = max_limit["30-60MHz_count"] + 1
+            elif df.at[row,'Frequency[MHz]'] >= 60 and df.at[row,'Frequency[MHz]'] < 100:
+                max_limit["60-100MHz_sum"] = max_limit["60-100MHz_sum"] + 10**(df.at[row,'CISPR11_RE_CLASS_B_Group_1']/20)
+                max_limit["60-100MHz_count"] = max_limit["60-100MHz_count"] + 1
+            elif df.at[row,'Frequency[MHz]'] >= 100 and df.at[row,'Frequency[MHz]'] < 200:
+                max_limit["100-200MHz_sum"] = max_limit["100-200MHz_sum"] + 10**(df.at[row,'CISPR11_RE_CLASS_B_Group_1']/20)
+                max_limit["100-200MHz_count"] = max_limit["100-200MHz_count"] + 1
+            elif df.at[row,'Frequency[MHz]'] >= 200 and df.at[row,'Frequency[MHz]'] < 400:
+                max_limit["200-400MHz_sum"] = max_limit["200-400MHz_sum"] + 10**(df.at[row,'CISPR11_RE_CLASS_B_Group_1']/20)
+                max_limit["200-400MHz_count"] = max_limit["200-400MHz_count"] + 1
+            elif df.at[row,'Frequency[MHz]'] >= 400 and df.at[row,'Frequency[MHz]'] < 1000:
+                max_limit["400-1000MHz_sum"] = max_limit["400-1000MHz_sum"] + 10**(df.at[row,'CISPR11_RE_CLASS_B_Group_1']/20)
+                max_limit["400-1000MHz_count"] = max_limit["400-1000MHz_count"] + 1
+        
+        max_limit["30-60MHz_AVG_dBuV"] = max_limit["30-60MHz_sum"] / max_limit["30-60MHz_count"]
+        max_limit["60-100MHz_AVG_dBuV"] = max_limit["60-100MHz_sum"] / max_limit["60-100MHz_count"]
+        max_limit["100-200MHz_AVG_dBuV"] = max_limit["100-200MHz_sum"] / max_limit["100-200MHz_count"]
+        max_limit["200-400MHz_AVG_dBuV"] = max_limit["200-400MHz_sum"] / max_limit["200-400MHz_count"]
+        max_limit["400-1000MHz_AVG_dBuV"] = max_limit["400-1000MHz_sum"] / max_limit["400-1000MHz_count"]
+        max_limit["30-1000MHz_AVG_dBuV"] = (max_limit["30-60MHz_AVG_dBuV"] + max_limit["60-100MHz_AVG_dBuV"] + max_limit["100-200MHz_AVG_dBuV"] + max_limit["200-400MHz_AVG_dBuV"] + max_limit["30-1000MHz_AVG_dBuV"]) / 5
+        
+        min_30_60MHz = min([d["30-60MHz_AVG_uV"] for d in traces])
+        min_60_100MHz = min([d["60-100MHz_AVG_uV"] for d in traces])
+        min_100_200MHz = min([d["100-200MHz_AVG_uV"] for d in traces])
+        min_200_400MHz = min([d["200-400MHz_AVG_uV"] for d in traces])
+        min_400_1000MHz = min([d["400-1000MHz_AVG_uV"] for d in traces])
+        min_30_1000MHz = min([d["30-1000MHz_AVG_uV"] for d in traces])
+
+
+        for dict in traces:
+            normalized_value = 100 - ((dict["30-60MHz_AVG_uV"] - min_30_60MHz) / (max_limit["30-60MHz_AVG_dBuV"] - min_30_60MHz)) * 100
+            dict["30-60MHz_score"] = round(normalized_value, 0)
+            normalized_value = 100 - ((dict["60-100MHz_AVG_uV"] - min_60_100MHz) / (max_limit["60-100MHz_AVG_dBuV"] - min_60_100MHz)) * 100
+            dict["60-100MHz_score"] = round(normalized_value, 0)
+            normalized_value = 100 - ((dict["100-200MHz_AVG_uV"] - min_100_200MHz) / (max_limit["100-200MHz_AVG_dBuV"] - min_100_200MHz)) * 100
+            dict["100-200MHz_score"] = round(normalized_value, 0)
+            normalized_value = 100 - ((dict["200-400MHz_AVG_uV"] - min_200_400MHz) / (max_limit["200-400MHz_AVG_dBuV"] - min_200_400MHz)) * 100
+            dict["200-400MHz_score"] = round(normalized_value, 0)
+            normalized_value = 100 - ((dict["400-1000MHz_AVG_uV"] - min_400_1000MHz) / (max_limit["400-1000MHz_AVG_dBuV"] - min_400_1000MHz)) * 100
+            dict["400-1000MHz_score"] = round(normalized_value, 0)
+            normalized_value = 100 - ((dict["30-1000MHz_AVG_uV"] - min_30_1000MHz) / (max_limit["30-1000MHz_AVG_dBuV"] - min_30_1000MHz)) * 100
+            dict["30-1000MHz_score"] = round(normalized_value, 0)
+            #print(dict["30-1000MHz_score"])
+    else:
+        return apology("No traces in this session", 400)
+        #print(traces)
+
+    return traces

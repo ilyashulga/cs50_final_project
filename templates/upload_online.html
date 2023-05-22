@@ -71,9 +71,22 @@
                 <p>*** Trace2: Vertical Antenna Polarization [Max_Hold 360deg] or DM Noise for CE or Hor. for Loop Antenna</p>
                 <p>**** Trace3: Horizontal Antenna Polarization [Max_Hold 360deg] or CM Noise or Ver. for Loop Antenna</p>
 
-                <input type=submit value="Add Trace">
+                <!--<input type=submit value="Add Trace">-->
+                <button type="submit" class="btn btn-primary" id="add_trace">Add Trace</button>
+                <button name="adding_trace" id="adding_trace" class="btn btn-primary" type="submit" hidden="true"><span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                    Adding Trace...</button>
+                <br>
+                
             </div>
         </form>
+        <br>
+        <div class="mb-3">
+        <form action="/calculate_scores" method=post>
+            <button name="calculate_scores" id="calculate_scores" value="1" class="btn btn-warning" type="submit" onclick="return confirm('Execute scores evaluation? This may take time to complete')" >Calculate Scores</button>
+            <button name="calculating_scores" id="calculating_scores" value="1" class="btn btn-warning" type="submit" hidden="true"><span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                Calculating</button>     
+        </form>
+        </div>
     </div>
 </div>
 <br><br><br>
@@ -82,6 +95,7 @@
         <tr>
             <th>#</th>
             <th>Trace ID</th>
+            <th>Score</th>
             <th>Timestamp</th>
             <th>Model</th>
             <th>Layout</th>
@@ -107,6 +121,7 @@
         
             <td>{{ index }}</td>
             <td>{{ row['id'] }}</td>
+            <td>{{ session_scores_table[index]['30-1000MHz'] }}</td>
             <td>{{ row['timestamp'] }}</td>
             <td>{{ row['model'] }}</td>
             <td>{{ row['layout'] }}</td>
@@ -315,6 +330,39 @@ th {text-align: left;}
         }
         // --------------------End of Enabled and Disables blocks----------------
         
+        // Add loading circle element to Calculate scores
+        // Get references to the button and the element to disable
+        var enableButton = document.getElementById('calculate_scores');
+        var elementToEnable = document.getElementById('calculating_scores');
+
+        // Get references to Add Trace button and the element to disable
+        var enableButton1 = document.getElementById('add_trace');
+        var elementToEnable1 = document.getElementById('adding_trace');
+        
+        // Attach event listener to the button
+        enableButton.addEventListener('click', enableElement);
+        console.log('Enter enable')
+        // Attach event listener to the button
+        enableButton1.addEventListener('click', enableElement1);
+
+        // Function to disable the element
+        function enableElement() {
+        elementToEnable.hidden = 0; // Show the element
+        elementToEnable.disabled = 1;
+        enableButton.hidden = 1;
+        enableButton1.disabled = 1;
+        }
+        // Add loading circle element to Add Trace button
+
+
+        //console.log('Enter enable')
+        // Function to disable the element
+        function enableElement1() {
+        elementToEnable1.hidden = 0; // Show the element
+        elementToEnable1.disabled = 1;
+        enableButton1.hidden = 1;
+        enableButton.disabled = 1;
+        }
         //---------------------Modal for EDIT-----------------------------
         var exampleModal = document.getElementById('edit_data_row')
         exampleModal.addEventListener('show.bs.modal', function (event) {
