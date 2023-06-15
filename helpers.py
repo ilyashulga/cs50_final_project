@@ -9,7 +9,7 @@ import plotly
 import plotly.express as px
 import plotly.graph_objects as go
 from pathlib import Path
-import pyvisa
+#import pyvisa
 import requests
 import math
 
@@ -190,15 +190,15 @@ def getIconClassForFilename(fName):
     return fileIconClass
 
 
-def open_connection(ip):
+#def open_connection(ip):
 
-    rm = pyvisa.ResourceManager()
-    inst = rm.open_resource("TCPIP0::" + ip + "::inst0::INSTR")
-    #print(inst.query("*IDN?"))
+#   rm = pyvisa.ResourceManager()
+#   inst = rm.open_resource("TCPIP0::" + ip + "::inst0::INSTR")
+#   print(inst.query("*IDN?"))
 
-def close_connection(rm, inst):
-    rm.close()
-    inst.close()
+#def close_connection(rm, inst):
+#    rm.close()
+#    inst.close()
 
 def delete_folder(folder_path):
     absPath = safe_join(os.getcwd(), folder_path)

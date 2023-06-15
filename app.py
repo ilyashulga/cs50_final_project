@@ -8,17 +8,17 @@ from flask_session import Session
 from tempfile import mkdtemp
 from werkzeug.security import check_password_hash, generate_password_hash
 from werkzeug.utils import secure_filename
-import time
+#import time
 import json
 import pandas as pd
 import plotly
 import plotly.express as px
 import datetime
-# import pyvisa
-import requests
+#import pyvisa
+#import requests
 
 
-from helpers import apology, login_required, generate_graph, getIconClassForFilename, generate_multiple_graphs, open_connection, close_connection, get_csv_from_spectrum, delete_folder, evaluate_scores
+from helpers import apology, login_required, generate_graph, getIconClassForFilename, generate_multiple_graphs, get_csv_from_spectrum, delete_folder, evaluate_scores
 
 """ OPTION: connect to spectrum via VISA
 # Configure Spectrum Analyzer Keysight
