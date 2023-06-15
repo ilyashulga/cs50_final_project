@@ -1,0 +1,6 @@
+user_data
+__pycache__
+flask_session
+plotter.db
+plotter_backup.db
+plotter copy.db
